@@ -30,21 +30,21 @@ class RelationshipTests(TestCase):
         Page.objects.bulk_create(Page(slug=slug) for slug in slugs)
 
         CartItem.objects.bulk_create([
-            CartItem(pk=1, sku='1', description='red circle'),
-            CartItem(pk=2, sku='2', description='blue triangle'),
-            CartItem(pk=3, sku='1', description='red circle'),
+            CartItem(pk=1, product_code='11', description='red circle'),
+            CartItem(pk=2, product_code='22', description='blue triangle'),
+            CartItem(pk=3, product_code='11', description='red circle'),
         ])
 
         Product.objects.bulk_create([
-            Product(pk=1, sku='1', size=4, colour='red', shape='circle'),
-            Product(pk=2, sku='2', size=2, colour='blue', shape='triangle'),
-            Product(pk=3, sku='3', size=3, colour='yellow', shape='square'),
-            Product(pk=4, sku='4', size=1, colour='green', shape='circle'),
-            Product(pk=5, sku='5', size=3, colour='red', shape='triangle'),
-            Product(pk=6, sku='6', size=5, colour='blue', shape='square'),
-            Product(pk=7, sku='7', size=1, colour='yellow', shape='circle'),
-            Product(pk=8, sku='8', size=2, colour='green', shape='triangle'),
-            Product(pk=9, sku='9', size=2, colour='red', shape='square'),
+            Product(pk=1, sku='11', psize=4, pcolour='red', pshape='circle'),
+            Product(pk=2, sku='22', psize=2, pcolour='blue', pshape='triangle'),
+            Product(pk=3, sku='33', psize=3, pcolour='yellow', pshape='square'),
+            Product(pk=4, sku='44', psize=1, pcolour='green', pshape='circle'),
+            Product(pk=5, sku='55', psize=3, pcolour='red', pshape='triangle'),
+            Product(pk=6, sku='66', psize=5, pcolour='blue', pshape='square'),
+            Product(pk=7, sku='77', psize=1, pcolour='yellow', pshape='circle'),
+            Product(pk=8, sku='88', psize=2, pcolour='green', pshape='triangle'),
+            Product(pk=9, sku='99', psize=2, pcolour='red', pshape='square'),
         ])
 
         Category.objects.bulk_create([
@@ -94,52 +94,29 @@ class RelationshipTests(TestCase):
             {'a', 'a.b'},
         )
 
-    def test_single_forward(self):
-
-        cartitem_1 = CartItem.objects.get(pk=1)
-        product_1 = Product.objects.get(pk=1)
-
-        self.assertEqual(cartitem_1.product, product_1)
-        self.assertListEqual(
-            list(product_1.cart_items.all().order_by('pk')),
-            list(CartItem.objects.filter(sku='1').order_by('pk'))
-        )
-
-    def test_filter(self):
-
-        self.assertSeqEqual(
-            Product.objects.filter(cart_items__description='red circle').distinct(),
-            [Product.objects.get(pk=1)]
-        )
-
-        self.assertSeqEqual(
-            CartItem.objects.filter(product__colour='red', product__shape='circle'),
-            [CartItem.objects.get(pk=1), CartItem.objects.get(pk=3)]
-        )
-
     def test_multiple_conditions(self):
 
         f = ProductFilter.objects.create(colour='red', size=3)
 
         self.assertSeqEqual(
-            Product.objects.filter(colour='red', size__gte=3).order_by('pk'),
+            Product.objects.filter(pcolour='red', psize__gte=3).order_by('pk'),
             f.products.order_by('pk'),
         )
 
         self.assertSeqEqual(
             Product.objects.filter(filters=f),
-            Product.objects.filter(colour='red', size__gte=3).order_by('pk'),
+            Product.objects.filter(pcolour='red', psize__gte=3).order_by('pk'),
         )
 
         self.assertSeqEqual(
-            Product.objects.filter(colour='red', size__gte=3).first().filters.all(),
+            Product.objects.filter(pcolour='red', psize__gte=3).first().filters.all(),
             [f],
         )
 
     def test_multi_hop(self):
         f = ProductFilter.objects.create(colour='red', size=3)
 
-        cart_items = CartItem.objects.filter(sku__in=Product.objects.filter(colour='red', size__gte=3)).order_by('pk')
+        cart_items = CartItem.objects.filter(product_code__in=Product.objects.filter(pcolour='red', psize__gte=3).values_list('sku', flat=True)).order_by('pk')
         self.assertSeqEqual(
             cart_items,
             CartItem.objects.filter(product__filters=f),
@@ -148,4 +125,28 @@ class RelationshipTests(TestCase):
         self.assertSeqEqual(
             ProductFilter.objects.filter(products__cart_items=cart_items),
             [f],
+        )
+
+    def test_m2o_forward_accessor(self):
+        self.assertEqual(
+            CartItem.objects.get(pk=1).product,
+            Product.objects.get(pk=1),
+        )
+
+    def test_m2o_reverse_accessor(self):
+        self.assertSeqEqual(
+            Product.objects.get(pk=1).cart_items.all().order_by('pk'),
+            CartItem.objects.filter(product_code='11').order_by('pk'),
+        )
+
+    def test_m2o_forward_filter(self):
+        self.assertSeqEqual(
+            Product.objects.filter(cart_items__description='red circle').distinct(),
+            [Product.objects.get(pk=1)]
+        )
+
+    def test_m2o_reverse_filter(self):
+        self.assertSeqEqual(
+            CartItem.objects.filter(product__pcolour='red', product__pshape='circle'),
+            [CartItem.objects.get(pk=1), CartItem.objects.get(pk=3)]
         )

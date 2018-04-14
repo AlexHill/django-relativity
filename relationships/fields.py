@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import ForeignObject, F
 from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor, ReverseOneToOneDescriptor
 from django.db.models.fields.reverse_related import ForeignObjectRel
-from django.db.models.query_utils import PathInfo
+from django.db.models.query_utils import PathInfo, Q
 from django.db.models.sql.datastructures import Join
 
 
@@ -29,12 +29,34 @@ class CustomForeignObjectRel(ForeignObjectRel):
     def get_attname(self):
         return self.name
 
+    def get_extra_restriction(self, where_class, alias, related_alias):
+        return Restriction(False, self.related_model, self.model, related_alias, alias, self.field.join_conditions, where_class)
+
     def get_forward_related_filter(self, obj):
-        return self.field.get_forward_related_filter(obj)
+        """
+        Return the filter arguments which select the instances of self.model
+        that are related to obj.
+        """
+        q = self.field.join_conditions
+
+        # If we could return a Q from here, we wouldn't need this. But we have
+        # to return a dict of filter arguments, which means we can only
+        # support basic AND queries.
+        assert q.connector == Q.AND
+        assert all(type(c) == tuple for c in q.children)
+
+        def resolve_value(v):
+            return getattr(obj, v.name) if isinstance(v, L) else v
+
+        return {
+            path: resolve_value(value)
+            for path, value in q.children
+        }
 
 
 class Restriction(object):
-    def __init__(self, local_model, related_model, local_alias, related_alias, join_conditions, where_class):
+    def __init__(self, forward, local_model, related_model, local_alias, related_alias, join_conditions, where_class):
+        self.forward = forward
         self.local_model = local_model
         self.related_model = related_model
         self.related_alias = related_alias
@@ -49,7 +71,9 @@ class Restriction(object):
         assert aliases == tables
         assert {self.local_alias, self.related_alias} <= set(aliases)
 
-        is_forward = aliases.index(self.local_alias) < aliases.index(self.related_alias)
+        is_forward = aliases.index(self.local_alias) > aliases.index(self.related_alias)
+        if not self.forward:
+            is_forward = not is_forward
         field_query = compiler.query.clone(**{
             "model": self.local_model,
             "tables": (
@@ -106,6 +130,9 @@ class Relationship(models.ForeignObject):
         """
         return self.remote_field
 
+    def get_accessor_name(self):
+        return self.name
+
     def get_extra_restriction(self, where_class, related_alias, local_alias):
 
         # opts = [self.rel.to._meta, self.model._meta]
@@ -123,7 +150,7 @@ class Relationship(models.ForeignObject):
         #
         #     return expression(*arg_cols)
 
-        return Restriction(self.model, self.related_model, local_alias, related_alias, self.join_conditions, where_class)
+        return Restriction(True, self.model, self.related_model, local_alias, related_alias, self.join_conditions, where_class)
 
     def get_forward_related_filter(self, obj):
         return {self.name: obj}

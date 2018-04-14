@@ -34,30 +34,30 @@ class Category(models.Model):
 
 
 @python_2_unicode_compatible
-class CartItem(models.Model):
-    sku = models.CharField(max_length=13)
-    description = models.TextField()
-
-    def __str__(self):
-        return "Cart item #%s: SKU %s" % (self.pk, self.sku)
-
-
-@python_2_unicode_compatible
 class Product(models.Model):
     sku = models.CharField(max_length=13)
-    colour = models.CharField(max_length=20)
-    shape = models.CharField(max_length=20)
-    size = models.IntegerField()
-
-    cart_items = Relationship(
-        CartItem,
-        Q(sku=L('sku')),
-        related_name='product',
-        reverse_multiple=False,
-    )
+    pcolour = models.CharField(max_length=20)
+    pshape = models.CharField(max_length=20)
+    psize = models.IntegerField()
 
     def __str__(self):
         return "Product #%s: a %s %s, size %s" % (self.sku, self.colour, self.shape, self.size)
+
+
+@python_2_unicode_compatible
+class CartItem(models.Model):
+    product_code = models.CharField(max_length=13)
+    description = models.TextField()
+
+    product = Relationship(
+        Product,
+        Q(sku=L('product_code')),
+        related_name='cart_items',
+        multiple=False,
+    )
+
+    def __str__(self):
+        return "Cart item #%s: SKU %s" % (self.pk, self.sku)
 
 
 @python_2_unicode_compatible
@@ -67,6 +67,6 @@ class ProductFilter(models.Model):
 
     products = Relationship(
         Product,
-        Q(colour=L('colour')) & Q(size__gte=L('size')),
+        Q(pcolour=L('colour')) & Q(psize__gte=L('size')),
         related_name='filters',
     )
