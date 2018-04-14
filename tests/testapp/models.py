@@ -19,6 +19,21 @@ class Page(models.Model):
 
 
 @python_2_unicode_compatible
+class Categorised(models.Model):
+    category_codes = models.TextField()
+
+
+@python_2_unicode_compatible
+class Category(models.Model):
+    code = models.TextField(unique=True)
+    members = Relationship(
+        Categorised,
+        Q(category_codes__contains=L('code')),
+        related_name='categories',
+    )
+
+
+@python_2_unicode_compatible
 class CartItem(models.Model):
     sku = models.CharField(max_length=13)
     description = models.TextField()

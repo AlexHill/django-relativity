@@ -8,12 +8,14 @@ from django.db.models.sql.datastructures import Join
 
 def parse_query(q, left_model, right_model):
     """
-    Parse a Q into a form suitable for use by the rest of our code.
+    Parse a Q into a form suitable for use by the rest of our code, with
+    left, right and lookup identified.
     :param q:
     :param left_model:
     :param right_model:
     :return:
     """
+
 
 class CustomForeignObjectRel(ForeignObjectRel):
     """
@@ -41,8 +43,12 @@ class Restriction(object):
         self.where_class = where_class
 
     def as_sql(self, compiler, connection):
-        assert all(a in compiler.query.alias_map for a in [self.local_alias, self.related_alias])
         aliases = list(compiler.query.alias_map)
+        tables = list(compiler.query.tables)
+
+        assert aliases == tables
+        assert {self.local_alias, self.related_alias} <= set(aliases)
+
         is_forward = aliases.index(self.local_alias) < aliases.index(self.related_alias)
         field_query = compiler.query.clone(**{
             "model": self.local_model,

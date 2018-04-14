@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.utils.six.moves import zip_longest
 
 from django.test import TestCase
-from testapp.models import Page, CartItem, Product, ProductFilter
+from testapp.models import Category, Categorised, Page, CartItem, Product, ProductFilter
 
 
 class RelationshipTests(TestCase):
@@ -17,7 +17,8 @@ class RelationshipTests(TestCase):
                 else:
                     self.fail("%dth item differs: %s != %s" % (i, a, b))
 
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         slugs = [
             'a',
             'a.a.a',
@@ -46,7 +47,40 @@ class RelationshipTests(TestCase):
             Product(pk=9, sku='9', size=2, colour='red', shape='square'),
         ])
 
-    def test_relationships(self):
+        Category.objects.bulk_create([
+            Category(code='AAA'),
+            Category(code='BBB'),
+            Category(code='CCC'),
+        ])
+
+        Categorised.objects.bulk_create([
+            Categorised(pk=1, category_codes='AAA'),
+            Categorised(pk=2, category_codes='BBB DDD'),
+            Categorised(pk=3, category_codes='AAA CCC'),
+            Categorised(pk=4, category_codes='BBB CCC'),
+            Categorised(pk=5, category_codes='BBB'),
+            Categorised(pk=6, category_codes='CCC'),
+        ])
+
+    def test_m2m(self):
+
+        self.assertSeqEqual(
+            Category.objects.get(code='AAA').members.all(),
+            [
+                Categorised.objects.get(pk=1),
+                Categorised.objects.get(pk=3),
+            ]
+        )
+
+        self.assertSeqEqual(
+            Categorised.objects.get(pk=4).categories.all(),
+            [
+                Category.objects.get(code='BBB'),
+                Category.objects.get(code='CCC'),
+            ]
+        )
+
+    def test_m2m_recusive(self):
 
         ab = Page.objects.get(slug='a.b')
 
@@ -73,13 +107,13 @@ class RelationshipTests(TestCase):
 
     def test_filter(self):
 
-        self.assertListEqual(
-            list(Product.objects.filter(cart_items__description='red circle').distinct()),
+        self.assertSeqEqual(
+            Product.objects.filter(cart_items__description='red circle').distinct(),
             [Product.objects.get(pk=1)]
         )
 
-        self.assertListEqual(
-            list(CartItem.objects.filter(product__colour='red', product__shape='circle')),
+        self.assertSeqEqual(
+            CartItem.objects.filter(product__colour='red', product__shape='circle'),
             [CartItem.objects.get(pk=1), CartItem.objects.get(pk=3)]
         )
 
@@ -97,10 +131,21 @@ class RelationshipTests(TestCase):
             Product.objects.filter(colour='red', size__gte=3).order_by('pk'),
         )
 
+        self.assertSeqEqual(
+            Product.objects.filter(colour='red', size__gte=3).first().filters.all(),
+            [f],
+        )
+
     def test_multi_hop(self):
         f = ProductFilter.objects.create(colour='red', size=3)
 
+        cart_items = CartItem.objects.filter(sku__in=Product.objects.filter(colour='red', size__gte=3)).order_by('pk')
         self.assertSeqEqual(
-            CartItem.objects.filter(sku__in=Product.objects.filter(colour='red', size__gte=3)).order_by('pk'),
+            cart_items,
             CartItem.objects.filter(product__filters=f),
+        )
+
+        self.assertSeqEqual(
+            ProductFilter.objects.filter(products__cart_items=cart_items),
+            [f],
         )
