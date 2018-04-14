@@ -48,9 +48,9 @@ class RelationshipTests(TestCase):
         ])
 
         Category.objects.bulk_create([
-            Category(code='AAA'),
-            Category(code='BBB'),
-            Category(code='CCC'),
+            Category(pk=1, code='AAA'),
+            Category(pk=2, code='BBB'),
+            Category(pk=3, code='CCC'),
         ])
 
         Categorised.objects.bulk_create([
@@ -61,38 +61,6 @@ class RelationshipTests(TestCase):
             Categorised(pk=5, category_codes='BBB'),
             Categorised(pk=6, category_codes='CCC'),
         ])
-
-    def test_m2m(self):
-
-        self.assertSeqEqual(
-            Category.objects.get(code='AAA').members.all(),
-            [
-                Categorised.objects.get(pk=1),
-                Categorised.objects.get(pk=3),
-            ]
-        )
-
-        self.assertSeqEqual(
-            Categorised.objects.get(pk=4).categories.all(),
-            [
-                Category.objects.get(code='BBB'),
-                Category.objects.get(code='CCC'),
-            ]
-        )
-
-    def test_m2m_recusive(self):
-
-        ab = Page.objects.get(slug='a.b')
-
-        self.assertSeqEqual(
-            ab.descendants.order_by('slug').values_list('slug', flat=True),
-            ['a.b', 'a.b.c'],
-        )
-
-        self.assertSetEqual(
-            set(ab.ascendants.values_list('slug', flat=True)),
-            {'a', 'a.b'},
-        )
 
     def test_multiple_conditions(self):
 
@@ -127,6 +95,52 @@ class RelationshipTests(TestCase):
             [f],
         )
 
+    def test_m2m_forward_accessor(self):
+
+        self.assertSeqEqual(
+            Category.objects.get(code='AAA').members.all(),
+            [
+                Categorised.objects.get(pk=1),
+                Categorised.objects.get(pk=3),
+            ]
+        )
+
+    def test_m2m_forward_filter(self):
+
+        self.assertSeqEqual(
+            Category.objects.filter(members__pk__in=[4, 6]).distinct().order_by('pk'),
+            Category.objects.filter(pk__in=[2, 3]).order_by('pk')
+        )
+
+    def test_m2m_reverse_filter(self):
+        self.assertSeqEqual(
+            Categorised.objects.filter(categories__pk__in=[1, 3]).distinct().order_by('pk'),
+            Categorised.objects.filter(pk__in=[1, 3, 4, 6]).order_by('pk'),
+        )
+
+    def test_m2m_reverse_accessor(self):
+        self.assertSeqEqual(
+            Categorised.objects.get(pk=4).categories.all(),
+            [
+                Category.objects.get(code='BBB'),
+                Category.objects.get(code='CCC'),
+            ]
+        )
+
+    def test_m2m_recusive(self):
+
+        ab = Page.objects.get(slug='a.b')
+
+        self.assertSeqEqual(
+            ab.descendants.order_by('slug').values_list('slug', flat=True),
+            ['a.b', 'a.b.c'],
+        )
+
+        self.assertSetEqual(
+            set(ab.ascendants.values_list('slug', flat=True)),
+            {'a', 'a.b'},
+        )
+
     def test_m2o_forward_accessor(self):
         self.assertEqual(
             CartItem.objects.get(pk=1).product,
@@ -139,13 +153,13 @@ class RelationshipTests(TestCase):
             CartItem.objects.filter(product_code='11').order_by('pk'),
         )
 
-    def test_m2o_forward_filter(self):
+    def test_m2o_reverse_filter(self):
         self.assertSeqEqual(
             Product.objects.filter(cart_items__description='red circle').distinct(),
             [Product.objects.get(pk=1)]
         )
 
-    def test_m2o_reverse_filter(self):
+    def test_m2o_forward_filter(self):
         self.assertSeqEqual(
             CartItem.objects.filter(product__pcolour='red', product__pshape='circle'),
             [CartItem.objects.get(pk=1), CartItem.objects.get(pk=3)]

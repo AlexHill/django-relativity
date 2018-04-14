@@ -32,6 +32,9 @@ class Category(models.Model):
         related_name='categories',
     )
 
+    def __str__(self):
+        return "Category #%d: %s" % (self.pk, self.code)
+
 
 @python_2_unicode_compatible
 class Product(models.Model):
