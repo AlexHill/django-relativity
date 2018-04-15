@@ -1,16 +1,29 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.db import models
-from django.db.models import Q, F
+from django.db.models import Q, Lookup
+from django.db.models.fields import Field
 from django.utils.encoding import python_2_unicode_compatible
-from relationships.fields import L, R, Relationship
+
+from relationships.fields import L, Relationship
+
+
+@Field.register_lookup
+class NotEqual(Lookup):
+    lookup_name = 'ne'
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + rhs_params
+        return '%s <> %s' % (lhs, rhs), params
 
 
 @python_2_unicode_compatible
 class Page(models.Model):
     slug = models.TextField()
     descendants = Relationship(
-        'self', Q(slug__startswith=L('slug')),
+        'self', Q(slug__startswith=L('slug'), slug__ne=L('slug')),
         related_name='ascendants'
     )
 
@@ -39,9 +52,9 @@ class Category(models.Model):
 @python_2_unicode_compatible
 class Product(models.Model):
     sku = models.CharField(max_length=13)
-    pcolour = models.CharField(max_length=20)
-    pshape = models.CharField(max_length=20)
-    psize = models.IntegerField()
+    colour = models.CharField(max_length=20)
+    shape = models.CharField(max_length=20)
+    size = models.IntegerField()
 
     def __str__(self):
         return "Product #%s: a %s %s, size %s" % (self.sku, self.colour, self.shape, self.size)
@@ -65,11 +78,11 @@ class CartItem(models.Model):
 
 @python_2_unicode_compatible
 class ProductFilter(models.Model):
-    colour = models.CharField(max_length=20)
-    size = models.IntegerField()
+    fcolour = models.CharField(max_length=20)
+    fsize = models.IntegerField()
 
     products = Relationship(
         Product,
-        Q(pcolour=L('colour')) & Q(psize__gte=L('size')),
+        Q(colour=L('fcolour'), size__gte=L('fsize')),
         related_name='filters',
     )
