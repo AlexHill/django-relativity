@@ -3,18 +3,6 @@ from django.db.models import ForeignObject, F
 from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor, ReverseOneToOneDescriptor
 from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.db.models.query_utils import PathInfo, Q
-from django.db.models.sql.datastructures import Join
-
-
-def parse_query(q, left_model, right_model):
-    """
-    Parse a Q into a form suitable for use by the rest of our code, with
-    left, right and lookup identified.
-    :param q:
-    :param left_model:
-    :param right_model:
-    :return:
-    """
 
 
 class CustomForeignObjectRel(ForeignObjectRel):
@@ -39,19 +27,18 @@ class CustomForeignObjectRel(ForeignObjectRel):
         """
         q = self.field.join_conditions
 
-        # If we could return a Q from here, we wouldn't need this. But we have
-        # to return a dict of filter arguments, which means we can only
-        # support basic AND queries.
-        assert q.connector == Q.AND
-        assert all(type(c) == tuple for c in q.children)
+        # If this is a simple restriction that can be expressed as an AND of
+        # two basic field lookups, we can return a dictionary of filters...
+        if q.connector == Q.AND and all(type(c) != tuple for c in q.children):
+            return {
+                lookup: getattr(obj, v.name) if isinstance(v, L) else v
+                for lookup, v in q.children
+            }
 
-        def resolve_value(v):
-            return getattr(obj, v.name) if isinstance(v, L) else v
-
-        return {
-            path: resolve_value(value)
-            for path, value in q.children
-        }
+        # ...otherwise, we return this lookup and let the compiler figure it
+        # out. This will involve a join where the above method might not.
+        else:
+            return {self.name: obj}
 
 
 class Restriction(object):
@@ -82,7 +69,7 @@ class Restriction(object):
                 [self.local_alias] + [t for t in compiler.query.tables if t != self.local_alias]
             ),
         })
-        clause_query = compiler.query.clone(**{
+        lookup_query = compiler.query.clone(**{
             "model": self.related_model,
             "tables": (
                 [self.local_alias] + [t for t in compiler.query.tables if t != self.local_alias]
@@ -90,8 +77,8 @@ class Restriction(object):
                 [self.related_alias] + [t for t in compiler.query.tables if t != self.related_alias]
             ),
         })
-        clause_query._relationship_field_query = field_query
-        q, _ = clause_query._add_q(self.join_conditions, compiler.query.used_aliases)
+        lookup_query._relationship_field_query = field_query
+        q = self.join_conditions.resolve_expression(lookup_query, False, compiler.query.used_aliases)
         result = compiler.compile(q)
         return result
 
@@ -153,7 +140,24 @@ class Relationship(models.ForeignObject):
         return Restriction(True, self.model, self.related_model, local_alias, related_alias, self.join_conditions, where_class)
 
     def get_forward_related_filter(self, obj):
-        return {self.name: obj}
+        """
+        Return the filter arguments which select the instances of self.model
+        that are related to obj.
+        """
+        q = self.field.join_conditions
+
+        # If this is a simple restriction that can be expressed as an AND of
+        # two basic field lookups, we can return a dictionary of filters...
+        if q.connector == Q.AND and all(type(c) != tuple for c in q.children):
+            return {
+                lookup: getattr(obj, v.name) if isinstance(v, L) else v
+                for lookup, v in q.children
+            }
+
+        # ...otherwise, we return this lookup and let the compiler figure it
+        # out. This will involve a join where the above method might not.
+        else:
+            return {self.name: obj}
 
     def resolve_related_fields(self):
         return []
@@ -167,10 +171,6 @@ class Relationship(models.ForeignObject):
         to_opts = self.rel.to._meta
         from_opts = self.model._meta
         return [PathInfo(from_opts, to_opts, (to_opts.pk,), self, True, False)]
-
-
-class R(str):
-    pass
 
 
 class L(F):

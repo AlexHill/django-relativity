@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
-from testapp.models import Category, Categorised, Page, CartItem, Product, ProductFilter
+from testapp.models import Category, Categorised, CartItem, MPTTPage, Page, Product, ProductFilter
 
 
 class RelationshipTests(TestCase):
@@ -27,7 +27,19 @@ class RelationshipTests(TestCase):
             'Top.Science.Astronomy.Cosmology',
         ]
 
-        Page.objects.bulk_create(Page(pk=i, slug=slug) for i, slug in enumerate(slugs))
+        cache = {}
+        for i, slug in enumerate(sorted(map(lambda _: tuple(_.split('.')), slugs), key=len)):
+            cache[slug] = MPTTPage.objects.create(
+                pk=i,
+                name=slug[-1],
+                slug='.'.join(slug),
+                parent=cache.get(slug[:-1]),
+            )
+
+        Page.objects.bulk_create(
+            Page(pk=i, slug=slug, name=slug.rsplit('.', 1)[-1])
+            for i, slug in enumerate(slugs)
+        )
 
         CartItem.objects.bulk_create([
             CartItem(pk=1, product_code='11', description='red circle'),
@@ -95,47 +107,59 @@ class RelationshipTests(TestCase):
         )
 
     def test_m2m_recursive_accessor_forward(self):
-        p = Page.objects.get(slug='Top.Science.Astronomy')
-        self.assertSeqEqual(
-            p.descendants.values_list('slug', flat=True).order_by('slug'),
-            [
-                'Top.Science.Astronomy.Astrophysics',
-                'Top.Science.Astronomy.Cosmology',
-            ],
-        )
+        def test_for(PageModel):
+            p = PageModel.objects.get(slug='Top.Science.Astronomy')
+            self.assertSeqEqual(
+                p.descendants.values_list('slug', flat=True).order_by('slug'),
+                [
+                    'Top.Science.Astronomy.Astrophysics',
+                    'Top.Science.Astronomy.Cosmology',
+                ],
+            )
+        test_for(Page)
+        test_for(MPTTPage)
 
     def test_m2m_recursive_accessor_reverse(self):
-        p = Page.objects.get(slug='Top.Science.Astronomy')
-        self.assertSeqEqual(
-            p.ascendants.values_list('slug', flat=True).order_by('slug'),
-            [
-                'Top',
-                'Top.Science',
-            ],
-        )
+        def test_for(PageModel):
+            p = PageModel.objects.get(slug='Top.Science.Astronomy')
+            self.assertSeqEqual(
+                p.ascendants.values_list('slug', flat=True).order_by('slug'),
+                [
+                    'Top',
+                    'Top.Science',
+                ],
+            )
+        test_for(Page)
+        test_for(MPTTPage)
 
     def test_m2m_recursive_filter_forward(self):
-        self.assertSeqEqual(
-            Page.objects.filter(descendants__slug__contains='Stars').values_list('slug', flat=True).distinct().order_by('slug'),
-            [
-                'Top',
-                'Top.Collections',
-                'Top.Collections.Pictures',
-                'Top.Collections.Pictures.Astronomy',
-            ],
-        )
+        def test_for(PageModel):
+            self.assertSeqEqual(
+                PageModel.objects.filter(descendants__slug__contains='Stars').values_list('slug', flat=True).distinct().order_by('slug'),
+                [
+                    'Top',
+                    'Top.Collections',
+                    'Top.Collections.Pictures',
+                    'Top.Collections.Pictures.Astronomy',
+                ],
+            )
+        test_for(Page)
+        test_for(MPTTPage)
 
     def test_m2m_recursive_filter_reverse(self):
-        self.assertSeqEqual(
-            Page.objects.filter(ascendants__slug__contains='Astronomy').values_list('slug', flat=True).distinct().order_by('slug'),
-            [
-                'Top.Collections.Pictures.Astronomy.Astronauts',
-                'Top.Collections.Pictures.Astronomy.Galaxies',
-                'Top.Collections.Pictures.Astronomy.Stars',
-                'Top.Science.Astronomy.Astrophysics',
-                'Top.Science.Astronomy.Cosmology',
-            ],
-        )
+        def test_for(PageModel):
+            self.assertSeqEqual(
+                PageModel.objects.filter(ascendants__slug__contains='Astronomy').values_list('slug', flat=True).distinct().order_by('slug'),
+                [
+                    'Top.Collections.Pictures.Astronomy.Astronauts',
+                    'Top.Collections.Pictures.Astronomy.Galaxies',
+                    'Top.Collections.Pictures.Astronomy.Stars',
+                    'Top.Science.Astronomy.Astrophysics',
+                    'Top.Science.Astronomy.Cosmology',
+                ],
+            )
+        test_for(Page)
+        test_for(MPTTPage)
 
     def test_m2o_accessor_forward(self):
         self.assertEqual(

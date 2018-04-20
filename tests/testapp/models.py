@@ -4,8 +4,11 @@ from django.db import models
 from django.db.models import Q, Lookup
 from django.db.models.fields import Field
 from django.utils.encoding import python_2_unicode_compatible
+from mptt.fields import TreeForeignKey
+from mptt.models import MPTTModel
 
 from relationships.fields import L, Relationship
+from relationships.mptt import MPTTDescendants
 
 
 @Field.register_lookup
@@ -20,15 +23,36 @@ class NotEqual(Lookup):
 
 
 @python_2_unicode_compatible
+class MPTTPage(MPTTModel):
+    name = models.TextField()
+    slug = models.TextField(unique=True, null=False, blank=False)
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+
+    descendants = MPTTDescendants()
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
 class Page(models.Model):
-    slug = models.TextField()
+    name = models.TextField()
+    slug = models.TextField(unique=True, null=False, blank=False)
+
     descendants = Relationship(
-        'self', Q(slug__startswith=L('slug'), slug__ne=L('slug')),
+        'self',
+        Q(slug__startswith=L('slug'), slug__ne=L('slug')),
         related_name='ascendants'
     )
 
+    subtree = Relationship(
+        'self',
+        Q(slug__startswith=L('slug')),
+        related_name='rootpath',
+    )
+
     def __str__(self):
-        return self.slug
+        return self.name
 
 
 @python_2_unicode_compatible
@@ -86,3 +110,11 @@ class ProductFilter(models.Model):
         Q(colour=L('fcolour'), size__gte=L('fsize')),
         related_name='filters',
     )
+
+    cartitems = Relationship(
+        CartItem,
+        Q(product__colour=L('fcolour'), product__size__gte=L('fsize')),
+        related_name='filters',
+    )
+
+    blah = Relationship
