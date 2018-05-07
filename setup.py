@@ -10,17 +10,18 @@ def read(fname):
 
 
 setup(
-    name='django-relationships',
+    name='django-relativity',
     version='0.1a1',
-    description='An endlessly flexible relationship field for your Django models.',
+    description='A flexible relationship field for the Django ORM.',
     license='BSD',
     long_description='',
-    url='https://github.com/alexhill/django-keyparty',
+    long_description_content_type='text/markdown',
+    url='https://github.com/alexhill/django-relativity',
     author='Alex Hill',
     author_email='alex@hill.net.au',
 
     packages=find_packages(),
-    install_requires=['django<2.0'],
+    install_requires=['django>=1.11'],
 
     classifiers=[
         'Development Status :: 4 - Beta',

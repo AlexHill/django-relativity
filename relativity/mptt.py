@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from relationships.fields import L, Relationship
+from relativity.fields import L, Relationship
 
 
 class MPTTRef(L):

@@ -7,8 +7,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 
-from relationships.fields import L, Relationship
-from relationships.mptt import MPTTDescendants
+from relativity.fields import L, Relationship
+from relativity.mptt import MPTTDescendants
 
 
 @Field.register_lookup
@@ -118,3 +118,27 @@ class ProductFilter(models.Model):
     )
 
     blah = Relationship
+
+
+@python_2_unicode_compatible
+class User(models.Model):
+    username = models.TextField(primary_key=True)
+
+    def __str__(self):
+        return self.username
+
+
+@python_2_unicode_compatible
+class Chemical(models.Model):
+    formula = models.TextField()
+    chemical_name = models.TextField()
+    common_name = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.formula
+
+
+class SavedFilter(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    search_regex = models.TextField()
+    chemicals = Relationship(Chemical, Q(formula__regex=L('search_regex')))

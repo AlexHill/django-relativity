@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
-from testapp.models import Category, Categorised, CartItem, MPTTPage, Page, Product, ProductFilter
+from testapp.models import Category, Categorised, CartItem, MPTTPage, Page, Product, ProductFilter, User, SavedFilter, \
+    Chemical
 
 
 class RelationshipTests(TestCase):
@@ -106,6 +107,26 @@ class RelationshipTests(TestCase):
             Categorised.objects.filter(pk__in=[1, 3, 4, 6]).order_by('pk'),
         )
 
+    def test_m2m_prefetch_related_forward(self):
+        member_qs = Categorised.objects.filter(pk__lte=4)
+        with self.assertNumQueries(2):
+            members = member_qs.prefetch_related("categories")
+            member_dict = {m: list(m.categories.all()) for m in members}
+        self.assertDictEqual(
+            member_dict,
+            {m: list(m.categories.all()) for m in member_qs}
+        )
+
+    def test_m2m_prefetch_related_reverse(self):
+        category_qs = Category.objects.filter(code__in=['AAA', 'BBB'])
+        with self.assertNumQueries(2):
+            categories = category_qs.prefetch_related("members")
+            category_dict = {c: list(c.members.all()) for c in categories}
+        self.assertDictEqual(
+            category_dict,
+            {c: list(c.members.all()) for c in category_qs}
+        )
+
     def test_m2m_recursive_accessor_forward(self):
         def test_for(PageModel):
             p = PageModel.objects.get(slug='Top.Science.Astronomy')
@@ -185,24 +206,12 @@ class RelationshipTests(TestCase):
             [CartItem.objects.get(pk=1), CartItem.objects.get(pk=3)]
         )
 
-    def test_multiple_conditions(self):
-
-        f = ProductFilter.objects.create(fcolour='red', fsize=3)
-
-        self.assertSeqEqual(
-            Product.objects.filter(colour='red', size__gte=3).order_by('pk'),
-            f.products.order_by('pk'),
-        )
-
-        self.assertSeqEqual(
-            Product.objects.filter(filters=f),
-            Product.objects.filter(colour='red', size__gte=3).order_by('pk'),
-        )
-
-        self.assertSeqEqual(
-            Product.objects.filter(colour='red', size__gte=3).first().filters.all(),
-            [f],
-        )
+    def test_m2o_prefetch_related_forward(self):
+        with self.assertNumQueries(2):
+            products = Product.objects.filter(colour='red').prefetch_related('cart_items').all()
+            for product in products:
+                for cart_item in product.cart_items.all():
+                    self.assertEqual(cart_item.product, product)
 
     def test_multi_hop(self):
         f = ProductFilter.objects.create(fcolour='red', fsize=3)
@@ -214,6 +223,6 @@ class RelationshipTests(TestCase):
         )
 
         self.assertSeqEqual(
-            ProductFilter.objects.filter(products__cart_items=cart_items),
-            [f],
+            ProductFilter.objects.filter(products__cart_items__in=cart_items),
+            [f, f],
         )
