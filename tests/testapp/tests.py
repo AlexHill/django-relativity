@@ -232,6 +232,11 @@ class RelationshipTests(TestCase):
                 for cart_item in product.cart_items.all():
                     self.assertEqual(cart_item.product, product)
 
+    def test_m2o_reverse_select_related(self):
+        with self.assertNumQueries(1):
+            for cart_item in CartItem.objects.select_related("product").all():
+                self.assertEqual(cart_item.product.sku, cart_item.product_code)
+
     def test_multi_hop(self):
         f = ProductFilter.objects.create(fcolour="red", fsize=3)
 
