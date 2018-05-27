@@ -1,16 +1,29 @@
 from collections import OrderedDict
 
 import django
-from django.db import models, router, connections
+from django.db import models, connections
 from django.db.models import ForeignObject, F
-from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor, ReverseOneToOneDescriptor
+from django.db.models.fields.related_descriptors import (
+    ReverseManyToOneDescriptor,
+    ReverseOneToOneDescriptor,
+)
 from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.db.models.query_utils import PathInfo, Q
 from django.utils.functional import cached_property
 
 
 class Restriction(object):
-    def __init__(self, forward, local_model, related_model, local_alias, related_alias, predicate, where_class):
+
+    def __init__(
+        self,
+        forward,
+        local_model,
+        related_model,
+        local_alias,
+        related_alias,
+        predicate,
+        where_class,
+    ):
         self.forward = forward
         self.local_model = local_model
         self.related_model = related_model
@@ -48,16 +61,16 @@ class Restriction(object):
 
         lookup_query._relationship_field_query = field_query
         q = self.predicate.resolve_expression(
-            query=lookup_query,
-            allow_joins=False,
-            reuse=compiler.query.used_aliases,
+            query=lookup_query, allow_joins=False, reuse=compiler.query.used_aliases
         )
         result = compiler.compile(q)
         return result
 
 
-def create_relationship_many_manager(superclass, rel):
-    class RelationshipManager(superclass):
+def create_relationship_many_manager(base_manager, rel):
+
+    class RelationshipManager(base_manager):
+
         def __init__(self, instance):
             super(RelationshipManager, self).__init__()
 
@@ -71,30 +84,35 @@ def create_relationship_many_manager(superclass, rel):
             manager = getattr(self.model, manager)
             manager_class = create_relationship_many_manager(manager.__class__, rel)
             return manager_class(self.instance)
+
         do_not_call_in_templates = True
 
         def _apply_rel_filters(self, queryset):
             """
             Filter the queryset for the instance this manager is bound to.
             """
-            db = self._db or router.db_for_read(self.model, instance=self.instance)
-            empty_strings_as_null = connections[db].features.interprets_empty_strings_as_nulls
             queryset._add_hints(instance=self.instance)
             if self._db:
                 queryset = queryset.using(self._db)
             queryset = queryset.filter(**self.core_filters)
-            queryset._known_related_objects = {self.field: {self.instance.pk: self.instance}}
+            queryset._known_related_objects = {
+                self.field: {self.instance.pk: self.instance}
+            }
             return queryset
 
         def _remove_prefetched_objects(self):
             try:
-                self.instance._prefetched_objects_cache.pop(self.field.relationship_related_query_name())
+                self.instance._prefetched_objects_cache.pop(
+                    self.field.relationship_related_query_name()
+                )
             except (AttributeError, KeyError):
                 pass  # nothing to clear from cache
 
         def get_queryset(self):
             try:
-                return self.instance._prefetched_objects_cache[self.field.relationship_related_query_name()]
+                return self.instance._prefetched_objects_cache[
+                    self.field.relationship_related_query_name()
+                ]
             except (AttributeError, KeyError):
                 queryset = super(RelationshipManager, self).get_queryset()
                 return self._apply_rel_filters(queryset)
@@ -106,7 +124,7 @@ def create_relationship_many_manager(superclass, rel):
             queryset._add_hints(instance=instances[0])
             queryset = queryset.using(queryset._db or self._db)
 
-            query = {'%s__in' % self.field.name: instances}
+            query = {"%s__in" % self.field.name: instances}
             queryset = queryset._next_is_sticky().filter(**query)
 
             # For non-autocreated 'through' models, can't assume we are
@@ -115,14 +133,18 @@ def create_relationship_many_manager(superclass, rel):
             join_table = pk.model._meta.db_table
             connection = connections[queryset.db]
             qn = connection.ops.quote_name
-            queryset = queryset.extra(select={
-                '_prefetch_related_val_%s' % f.attname:
-                '%s.%s' % (qn(join_table), qn(f.column)) for f in [pk]
-            })
+            queryset = queryset.extra(
+                select={
+                    "_prefetch_related_val_%s"
+                    % f.attname: "%s.%s"
+                    % (qn(join_table), qn(f.column))
+                    for f in [pk]
+                }
+            )
 
             def rel_obj_attr(result):
                 return tuple(
-                    getattr(result, '_prefetch_related_val_%s' % f.attname)
+                    getattr(result, "_prefetch_related_val_%s" % f.attname)
                     for f in [pk]
                 )
 
@@ -229,16 +251,16 @@ class CustomForeignObjectRel(ForeignObjectRel):
 
 
 class ManyToManyRelationshipDescriptor(ReverseManyToOneDescriptor):
+
     @cached_property
     def related_manager_cls(self):
         related_model = self.rel.related_model
 
-        superclass = create_relationship_many_manager(
-            related_model._default_manager.__class__,
-            self.rel,
+        manager = create_relationship_many_manager(
+            related_model._default_manager.__class__, self.rel
         )
 
-        return superclass
+        return manager
 
 
 class Relationship(models.ForeignObject):
@@ -256,8 +278,8 @@ class Relationship(models.ForeignObject):
     rel_class = CustomForeignObjectRel
 
     def __init__(self, to, predicate, **kwargs):
-        self.multiple = kwargs.pop('multiple', True)
-        self.reverse_multiple = kwargs.pop('reverse_multiple', True)
+        self.multiple = kwargs.pop("multiple", True)
+        self.reverse_multiple = kwargs.pop("reverse_multiple", True)
         if self.multiple and self.reverse_multiple:
             self.accessor_class = ManyToManyRelationshipDescriptor
             self.related_accessor_class = ManyToManyRelationshipDescriptor
@@ -330,12 +352,21 @@ class Relationship(models.ForeignObject):
             return [PathInfo(from_opts, to_opts, (to_opts.pk,), self, True, False)]
         to_opts = self.remote_field.model._meta
         from_opts = self.model._meta
-        return [PathInfo(from_opts, to_opts, (to_opts.pk,), self, True, False, filtered_relation)]
+        return [
+            PathInfo(
+                from_opts, to_opts, (to_opts.pk,), self, True, False, filtered_relation
+            )
+        ]
 
     def relationship_related_query_name(self):
         return self.related_query_name()
 
 
 class L(F):
-    def resolve_expression(self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False):
-        return super(L, self).resolve_expression(query._relationship_field_query, allow_joins, reuse, summarize, for_save)
+
+    def resolve_expression(
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+    ):
+        return super(L, self).resolve_expression(
+            query._relationship_field_query, allow_joins, reuse, summarize, for_save
+        )

@@ -13,20 +13,22 @@ from relativity.mptt import MPTTDescendants
 
 @Field.register_lookup
 class NotEqual(Lookup):
-    lookup_name = 'ne'
+    lookup_name = "ne"
 
     def as_sql(self, compiler, connection):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params
-        return '%s <> %s' % (lhs, rhs), params
+        return "%s <> %s" % (lhs, rhs), params
 
 
 @python_2_unicode_compatible
 class MPTTPage(MPTTModel):
     name = models.TextField()
     slug = models.TextField(unique=True, null=False, blank=False)
-    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
 
     descendants = MPTTDescendants()
 
@@ -40,15 +42,13 @@ class Page(models.Model):
     slug = models.TextField(unique=True, null=False, blank=False)
 
     descendants = Relationship(
-        'self',
-        Q(slug__startswith=L('slug'), slug__ne=L('slug')),
-        related_name='ascendants'
+        "self",
+        Q(slug__startswith=L("slug"), slug__ne=L("slug")),
+        related_name="ascendants",
     )
 
     subtree = Relationship(
-        'self',
-        Q(slug__startswith=L('slug')),
-        related_name='rootpath',
+        "self", Q(slug__startswith=L("slug")), related_name="rootpath"
     )
 
     def __str__(self):
@@ -64,9 +64,7 @@ class Categorised(models.Model):
 class Category(models.Model):
     code = models.TextField(unique=True)
     members = Relationship(
-        Categorised,
-        Q(category_codes__contains=L('code')),
-        related_name='categories',
+        Categorised, Q(category_codes__contains=L("code")), related_name="categories"
     )
 
     def __str__(self):
@@ -81,7 +79,12 @@ class Product(models.Model):
     size = models.IntegerField()
 
     def __str__(self):
-        return "Product #%s: a %s %s, size %s" % (self.sku, self.colour, self.shape, self.size)
+        return "Product #%s: a %s %s, size %s" % (
+            self.sku,
+            self.colour,
+            self.shape,
+            self.size,
+        )
 
 
 @python_2_unicode_compatible
@@ -90,10 +93,7 @@ class CartItem(models.Model):
     description = models.TextField()
 
     product = Relationship(
-        Product,
-        Q(sku=L('product_code')),
-        related_name='cart_items',
-        multiple=False,
+        Product, Q(sku=L("product_code")), related_name="cart_items", multiple=False
     )
 
     def __str__(self):
@@ -106,15 +106,13 @@ class ProductFilter(models.Model):
     fsize = models.IntegerField()
 
     products = Relationship(
-        Product,
-        Q(colour=L('fcolour'), size__gte=L('fsize')),
-        related_name='filters',
+        Product, Q(colour=L("fcolour"), size__gte=L("fsize")), related_name="filters"
     )
 
     cartitems = Relationship(
         CartItem,
-        Q(product__colour=L('fcolour'), product__size__gte=L('fsize')),
-        related_name='filters',
+        Q(product__colour=L("fcolour"), product__size__gte=L("fsize")),
+        related_name="filters",
     )
 
     blah = Relationship
@@ -141,4 +139,4 @@ class Chemical(models.Model):
 class SavedFilter(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     search_regex = models.TextField()
-    chemicals = Relationship(Chemical, Q(formula__regex=L('search_regex')))
+    chemicals = Relationship(Chemical, Q(formula__regex=L("search_regex")))

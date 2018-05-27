@@ -1,8 +1,15 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
-from testapp.models import Category, Categorised, CartItem, MPTTPage, Page, Product, ProductFilter, User, SavedFilter, \
-    Chemical
+from testapp.models import (
+    Category,
+    Categorised,
+    CartItem,
+    MPTTPage,
+    Page,
+    Product,
+    ProductFilter,
+)
 
 
 class RelationshipTests(TestCase):
@@ -13,98 +20,100 @@ class RelationshipTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         slugs = [
-            'Top',
-            'Top.Collections',
-            'Top.Collections.Pictures',
-            'Top.Collections.Pictures.Astronomy',
-            'Top.Collections.Pictures.Astronomy.Astronauts',
-            'Top.Collections.Pictures.Astronomy.Galaxies',
-            'Top.Collections.Pictures.Astronomy.Stars',
-            'Top.Hobbies',
-            'Top.Hobbies.Amateurs_Astronomy',
-            'Top.Science',
-            'Top.Science.Astronomy',
-            'Top.Science.Astronomy.Astrophysics',
-            'Top.Science.Astronomy.Cosmology',
+            "Top",
+            "Top.Collections",
+            "Top.Collections.Pictures",
+            "Top.Collections.Pictures.Astronomy",
+            "Top.Collections.Pictures.Astronomy.Astronauts",
+            "Top.Collections.Pictures.Astronomy.Galaxies",
+            "Top.Collections.Pictures.Astronomy.Stars",
+            "Top.Hobbies",
+            "Top.Hobbies.Amateurs_Astronomy",
+            "Top.Science",
+            "Top.Science.Astronomy",
+            "Top.Science.Astronomy.Astrophysics",
+            "Top.Science.Astronomy.Cosmology",
         ]
 
         cache = {}
-        for i, slug in enumerate(sorted(map(lambda _: tuple(_.split('.')), slugs), key=len)):
+        slug_tuples = (tuple(s.split(".")) for s in slugs)
+        for i, slug in enumerate(sorted(slug_tuples, key=len)):
             cache[slug] = MPTTPage.objects.create(
-                pk=i,
-                name=slug[-1],
-                slug='.'.join(slug),
-                parent=cache.get(slug[:-1]),
+                pk=i, name=slug[-1], slug=".".join(slug), parent=cache.get(slug[:-1])
             )
 
         Page.objects.bulk_create(
-            Page(pk=i, slug=slug, name=slug.rsplit('.', 1)[-1])
+            Page(pk=i, slug=slug, name=slug.rsplit(".", 1)[-1])
             for i, slug in enumerate(slugs)
         )
 
-        CartItem.objects.bulk_create([
-            CartItem(pk=1, product_code='11', description='red circle'),
-            CartItem(pk=2, product_code='22', description='blue triangle'),
-            CartItem(pk=3, product_code='11', description='red circle'),
-        ])
+        CartItem.objects.bulk_create(
+            [
+                CartItem(pk=1, product_code="11", description="red circle"),
+                CartItem(pk=2, product_code="22", description="blue triangle"),
+                CartItem(pk=3, product_code="11", description="red circle"),
+            ]
+        )
 
-        Product.objects.bulk_create([
-            Product(pk=1, sku='11', size=4, colour='red', shape='circle'),
-            Product(pk=2, sku='22', size=2, colour='blue', shape='triangle'),
-            Product(pk=3, sku='33', size=3, colour='yellow', shape='square'),
-            Product(pk=4, sku='44', size=1, colour='green', shape='circle'),
-            Product(pk=5, sku='55', size=3, colour='red', shape='triangle'),
-            Product(pk=6, sku='66', size=5, colour='blue', shape='square'),
-            Product(pk=7, sku='77', size=1, colour='yellow', shape='circle'),
-            Product(pk=8, sku='88', size=2, colour='green', shape='triangle'),
-            Product(pk=9, sku='99', size=2, colour='red', shape='square'),
-        ])
+        Product.objects.bulk_create(
+            [
+                Product(pk=1, sku="11", size=4, colour="red", shape="circle"),
+                Product(pk=2, sku="22", size=2, colour="blue", shape="triangle"),
+                Product(pk=3, sku="33", size=3, colour="yellow", shape="square"),
+                Product(pk=4, sku="44", size=1, colour="green", shape="circle"),
+                Product(pk=5, sku="55", size=3, colour="red", shape="triangle"),
+                Product(pk=6, sku="66", size=5, colour="blue", shape="square"),
+                Product(pk=7, sku="77", size=1, colour="yellow", shape="circle"),
+                Product(pk=8, sku="88", size=2, colour="green", shape="triangle"),
+                Product(pk=9, sku="99", size=2, colour="red", shape="square"),
+            ]
+        )
 
-        Category.objects.bulk_create([
-            Category(pk=1, code='AAA'),
-            Category(pk=2, code='BBB'),
-            Category(pk=3, code='CCC'),
-        ])
+        Category.objects.bulk_create(
+            [
+                Category(pk=1, code="AAA"),
+                Category(pk=2, code="BBB"),
+                Category(pk=3, code="CCC"),
+            ]
+        )
 
-        Categorised.objects.bulk_create([
-            Categorised(pk=1, category_codes='AAA'),
-            Categorised(pk=2, category_codes='BBB DDD'),
-            Categorised(pk=3, category_codes='AAA CCC'),
-            Categorised(pk=4, category_codes='BBB CCC'),
-            Categorised(pk=5, category_codes='BBB'),
-            Categorised(pk=6, category_codes='CCC'),
-        ])
+        Categorised.objects.bulk_create(
+            [
+                Categorised(pk=1, category_codes="AAA"),
+                Categorised(pk=2, category_codes="BBB DDD"),
+                Categorised(pk=3, category_codes="AAA CCC"),
+                Categorised(pk=4, category_codes="BBB CCC"),
+                Categorised(pk=5, category_codes="BBB"),
+                Categorised(pk=6, category_codes="CCC"),
+            ]
+        )
 
     def test_m2m_accessor_forward(self):
 
         self.assertSeqEqual(
-            Category.objects.get(code='AAA').members.all(),
-            [
-                Categorised.objects.get(pk=1),
-                Categorised.objects.get(pk=3),
-            ]
+            Category.objects.get(code="AAA").members.all(),
+            [Categorised.objects.get(pk=1), Categorised.objects.get(pk=3)],
         )
 
     def test_m2m_accessor_reverse(self):
         self.assertSeqEqual(
             Categorised.objects.get(pk=4).categories.all(),
-            [
-                Category.objects.get(code='BBB'),
-                Category.objects.get(code='CCC'),
-            ]
+            [Category.objects.get(code="BBB"), Category.objects.get(code="CCC")],
         )
 
     def test_m2m_filter_forward(self):
 
         self.assertSeqEqual(
-            Category.objects.filter(members__pk__in=[4, 6]).distinct().order_by('pk'),
-            Category.objects.filter(pk__in=[2, 3]).order_by('pk')
+            Category.objects.filter(members__pk__in=[4, 6]).distinct().order_by("pk"),
+            Category.objects.filter(pk__in=[2, 3]).order_by("pk"),
         )
 
     def test_m2m_filter_reverse(self):
         self.assertSeqEqual(
-            Categorised.objects.filter(categories__pk__in=[1, 3]).distinct().order_by('pk'),
-            Categorised.objects.filter(pk__in=[1, 3, 4, 6]).order_by('pk'),
+            Categorised.objects.filter(categories__pk__in=[1, 3])
+            .distinct()
+            .order_by("pk"),
+            Categorised.objects.filter(pk__in=[1, 3, 4, 6]).order_by("pk"),
         )
 
     def test_m2m_prefetch_related_forward(self):
@@ -113,116 +122,127 @@ class RelationshipTests(TestCase):
             members = member_qs.prefetch_related("categories")
             member_dict = {m: list(m.categories.all()) for m in members}
         self.assertDictEqual(
-            member_dict,
-            {m: list(m.categories.all()) for m in member_qs}
+            member_dict, {m: list(m.categories.all()) for m in member_qs}
         )
 
     def test_m2m_prefetch_related_reverse(self):
-        category_qs = Category.objects.filter(code__in=['AAA', 'BBB'])
+        category_qs = Category.objects.filter(code__in=["AAA", "BBB"])
         with self.assertNumQueries(2):
             categories = category_qs.prefetch_related("members")
             category_dict = {c: list(c.members.all()) for c in categories}
         self.assertDictEqual(
-            category_dict,
-            {c: list(c.members.all()) for c in category_qs}
+            category_dict, {c: list(c.members.all()) for c in category_qs}
         )
 
     def test_m2m_recursive_accessor_forward(self):
-        def test_for(PageModel):
-            p = PageModel.objects.get(slug='Top.Science.Astronomy')
+
+        def test_for(page_model):
+            p = page_model.objects.get(slug="Top.Science.Astronomy")
             self.assertSeqEqual(
-                p.descendants.values_list('slug', flat=True).order_by('slug'),
+                p.descendants.values_list("slug", flat=True).order_by("slug"),
                 [
-                    'Top.Science.Astronomy.Astrophysics',
-                    'Top.Science.Astronomy.Cosmology',
+                    "Top.Science.Astronomy.Astrophysics",
+                    "Top.Science.Astronomy.Cosmology",
                 ],
             )
+
         test_for(Page)
         test_for(MPTTPage)
 
     def test_m2m_recursive_accessor_reverse(self):
-        def test_for(PageModel):
-            p = PageModel.objects.get(slug='Top.Science.Astronomy')
+
+        def test_for(page_model):
+            p = page_model.objects.get(slug="Top.Science.Astronomy")
             self.assertSeqEqual(
-                p.ascendants.values_list('slug', flat=True).order_by('slug'),
-                [
-                    'Top',
-                    'Top.Science',
-                ],
+                p.ascendants.values_list("slug", flat=True).order_by("slug"),
+                ["Top", "Top.Science"],
             )
+
         test_for(Page)
         test_for(MPTTPage)
 
     def test_m2m_recursive_filter_forward(self):
-        def test_for(PageModel):
+
+        def test_for(page_model):
             self.assertSeqEqual(
-                PageModel.objects.filter(descendants__slug__contains='Stars').values_list('slug', flat=True).distinct().order_by('slug'),
+                page_model.objects.filter(descendants__slug__contains="Stars")
+                .values_list("slug", flat=True)
+                .distinct()
+                .order_by("slug"),
                 [
-                    'Top',
-                    'Top.Collections',
-                    'Top.Collections.Pictures',
-                    'Top.Collections.Pictures.Astronomy',
+                    "Top",
+                    "Top.Collections",
+                    "Top.Collections.Pictures",
+                    "Top.Collections.Pictures.Astronomy",
                 ],
             )
+
         test_for(Page)
         test_for(MPTTPage)
 
     def test_m2m_recursive_filter_reverse(self):
-        def test_for(PageModel):
+
+        def test_for(page_model):
             self.assertSeqEqual(
-                PageModel.objects.filter(ascendants__slug__contains='Astronomy').values_list('slug', flat=True).distinct().order_by('slug'),
+                page_model.objects.filter(ascendants__slug__contains="Astronomy")
+                .values_list("slug", flat=True)
+                .distinct()
+                .order_by("slug"),
                 [
-                    'Top.Collections.Pictures.Astronomy.Astronauts',
-                    'Top.Collections.Pictures.Astronomy.Galaxies',
-                    'Top.Collections.Pictures.Astronomy.Stars',
-                    'Top.Science.Astronomy.Astrophysics',
-                    'Top.Science.Astronomy.Cosmology',
+                    "Top.Collections.Pictures.Astronomy.Astronauts",
+                    "Top.Collections.Pictures.Astronomy.Galaxies",
+                    "Top.Collections.Pictures.Astronomy.Stars",
+                    "Top.Science.Astronomy.Astrophysics",
+                    "Top.Science.Astronomy.Cosmology",
                 ],
             )
+
         test_for(Page)
         test_for(MPTTPage)
 
     def test_m2o_accessor_forward(self):
-        self.assertEqual(
-            CartItem.objects.get(pk=1).product,
-            Product.objects.get(pk=1),
-        )
+        self.assertEqual(CartItem.objects.get(pk=1).product, Product.objects.get(pk=1))
 
     def test_m2o_accessor_reverse(self):
         self.assertSeqEqual(
-            Product.objects.get(pk=1).cart_items.all().order_by('pk'),
-            CartItem.objects.filter(product_code='11').order_by('pk'),
+            Product.objects.get(pk=1).cart_items.all().order_by("pk"),
+            CartItem.objects.filter(product_code="11").order_by("pk"),
         )
 
     def test_m2o_filter_reverse(self):
         self.assertSeqEqual(
-            Product.objects.filter(cart_items__description='red circle').distinct(),
-            [Product.objects.get(pk=1)]
+            Product.objects.filter(cart_items__description="red circle").distinct(),
+            [Product.objects.get(pk=1)],
         )
 
     def test_m2o_filter_forward(self):
         self.assertSeqEqual(
-            CartItem.objects.filter(product__colour='red', product__shape='circle'),
-            [CartItem.objects.get(pk=1), CartItem.objects.get(pk=3)]
+            CartItem.objects.filter(product__colour="red", product__shape="circle"),
+            [CartItem.objects.get(pk=1), CartItem.objects.get(pk=3)],
         )
 
     def test_m2o_prefetch_related_forward(self):
         with self.assertNumQueries(2):
-            products = Product.objects.filter(colour='red').prefetch_related('cart_items').all()
+            products = (
+                Product.objects.filter(colour="red")
+                .prefetch_related("cart_items")
+                .all()
+            )
             for product in products:
                 for cart_item in product.cart_items.all():
                     self.assertEqual(cart_item.product, product)
 
     def test_multi_hop(self):
-        f = ProductFilter.objects.create(fcolour='red', fsize=3)
+        f = ProductFilter.objects.create(fcolour="red", fsize=3)
 
-        cart_items = CartItem.objects.filter(product_code__in=Product.objects.filter(colour='red', size__gte=3).values_list('sku', flat=True)).order_by('pk')
-        self.assertSeqEqual(
-            cart_items,
-            CartItem.objects.filter(product__filters=f),
-        )
+        cart_items = CartItem.objects.filter(
+            product_code__in=Product.objects.filter(
+                colour="red", size__gte=3
+            ).values_list("sku", flat=True)
+        ).order_by("pk")
+
+        self.assertSeqEqual(cart_items, CartItem.objects.filter(product__filters=f))
 
         self.assertSeqEqual(
-            ProductFilter.objects.filter(products__cart_items__in=cart_items),
-            [f, f],
+            ProductFilter.objects.filter(products__cart_items__in=cart_items), [f, f]
         )
