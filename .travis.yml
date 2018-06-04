@@ -1,0 +1,21 @@
+language: python
+env:
+  - DJANGO_VERSION=2.0
+  - DJANGO_VERSION=1.11
+python:
+  - "3.6"
+  - "3.5"
+  - "3.4"
+  - "2.7"
+  - "pypy3"
+  - "pypy"
+matrix:
+  exclude:
+     - python: "2.7"
+       env: DJANGO_VERSION=2.0
+install:
+  - pip install -r test-requirements.txt
+  - pip install "django==$DJANGO_VERSION.*"
+  - pip install -e .
+script:
+  - python tests/manage.py test testapp
