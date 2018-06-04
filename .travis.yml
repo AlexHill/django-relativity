@@ -13,9 +13,12 @@ matrix:
   exclude:
      - python: "2.7"
        env: DJANGO_VERSION=2.0
+     - python: "pypy"
+       env: DJANGO_VERSION=2.0
 install:
   - pip install -r test-requirements.txt
   - pip install "django==$DJANGO_VERSION.*"
   - pip install -e .
+before_script: cd tests
 script:
-  - python tests/manage.py test testapp
+  - python manage.py test
