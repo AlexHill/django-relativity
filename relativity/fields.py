@@ -293,8 +293,16 @@ class Relationship(models.ForeignObject):
             else:
                 self.related_accessor_class = ReverseOneToOneDescriptor
 
-        super(Relationship, self).__init__(to, models.DO_NOTHING, [], [], **kwargs)
+        kwargs.setdefault("on_delete", models.DO_NOTHING)
+        kwargs.setdefault("from_fields", [])
+        kwargs.setdefault("to_fields", [])
+        super(Relationship, self).__init__(to, **kwargs)
         self.predicate = predicate
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(Relationship, self).deconstruct()
+        kwargs["predicate"] = self.predicate
+        return name, path, args, kwargs
 
     @property
     def field(self):

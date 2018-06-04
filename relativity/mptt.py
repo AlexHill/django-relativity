@@ -38,12 +38,13 @@ class MPTTDescendants(Relationship):
 
     def __init__(self, **kwargs):
         kwargs["related_name"] = "ascendants"
-        super(MPTTDescendants, self).__init__(
-            "self",
+        kwargs.setdefault("to", "self")
+        kwargs.setdefault(
+            "predicate",
             MPTTQ(
                 tree_id=MPTTRef("tree_id"),
                 left__gt=MPTTRef("left"),
                 left__lt=MPTTRef("right"),
             ),
-            **kwargs
         )
+        super(MPTTDescendants, self).__init__(**kwargs)
