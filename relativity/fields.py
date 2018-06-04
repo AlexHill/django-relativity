@@ -80,11 +80,10 @@ def create_relationship_many_manager(base_manager, rel):
 
             self.core_filters = {self.field.name: instance}
 
-        def __call__(self, *, manager):
-            manager = getattr(self.model, manager)
+        def __call__(self, **kwargs):
+            manager = getattr(self.model, kwargs.pop("manager"))
             manager_class = create_relationship_many_manager(manager.__class__, rel)
             return manager_class(self.instance)
-
         do_not_call_in_templates = True
 
         def _apply_rel_filters(self, queryset):
