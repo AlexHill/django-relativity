@@ -168,25 +168,25 @@ def create_relationship_many_manager(base_manager, rel):
             ) + ((False,) if django.VERSION[0] >= 2 else ())
 
         # All of the standard data-modifying methods are not supported by Relationship
-        def add(self, *objs, bulk=True):
+        def add(self, *args, **kwargs):
             raise NotImplementedError
 
-        def create(self, **kwargs):
+        def create(self, *args, **kwargs):
             raise NotImplementedError
 
-        def get_or_create(self, **kwargs):
+        def get_or_create(self, *args, **kwargs):
             raise NotImplementedError
 
-        def update_or_create(self, **kwargs):
+        def update_or_create(self, *args, **kwargs):
             raise NotImplementedError
 
-        def remove(self, *objs, bulk=True):
+        def remove(self, *args, **kwargs):
             raise NotImplementedError
 
-        def clear(self, *, bulk=True):
+        def clear(self, *args, **kwargs):
             raise NotImplementedError
 
-        def set(self, objs, *, bulk=True, clear=False):
+        def set(self, *args, **kwargs):
             raise NotImplementedError
 
     return RelationshipManager

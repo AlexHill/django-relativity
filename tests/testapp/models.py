@@ -55,7 +55,6 @@ class Page(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class Categorised(models.Model):
     category_codes = models.TextField()
 
@@ -116,6 +115,9 @@ class ProductFilter(models.Model):
     )
 
     blah = Relationship
+
+    def __str__(self):
+        return "ProductFilter #%d: %s size %s" % (self.pk, self.fcolour, self.fsize)
 
 
 @python_2_unicode_compatible
