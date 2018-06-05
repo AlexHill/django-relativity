@@ -129,7 +129,11 @@ def create_relationship_many_manager(base_manager, rel):
             # For non-autocreated 'through' models, can't assume we are
             # dealing with PK values.
             pk = rel.model._meta.pk
-            join_table = pk.model._meta.db_table
+
+            # table_map here contains a map of tables to used aliases - in the case
+            # that this is a recursive relationship we want the most recent alias,
+            # i.e. the joined table, not the base table.
+            join_table = queryset.query.table_map[pk.model._meta.db_table][-1]
             connection = connections[queryset.db]
             qn = connection.ops.quote_name
             queryset = queryset.extra(

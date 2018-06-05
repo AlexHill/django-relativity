@@ -200,6 +200,36 @@ class RelationshipTests(TestCase):
         test_for(Page)
         test_for(MPTTPage)
 
+    def test_m2m_recursive_prefetch_related_forward(self):
+
+        def test_for(page_model):
+            qs = page_model.objects.filter(slug__startswith="Top.Science")
+            with self.assertNumQueries(2 + qs.count()):
+                pages = qs.prefetch_related("descendants")
+                for page in pages:
+                    self.assertEqual(
+                        list(page.descendants.all()),
+                        list(page_model.objects.filter(ascendants=page)),
+                    )
+
+        test_for(Page)
+        test_for(MPTTPage)
+
+    def test_m2m_recursive_prefetch_related_reverse(self):
+
+        def test_for(page_model):
+            qs = page_model.objects.filter(slug__startswith="Top.Science")
+            with self.assertNumQueries(2 + qs.count()):
+                pages = qs.prefetch_related("ascendants")
+                for page in pages:
+                    self.assertEqual(
+                        list(page.ascendants.all()),
+                        list(page_model.objects.filter(descendants=page)),
+                    )
+
+        test_for(Page)
+        test_for(MPTTPage)
+
     def test_m2o_accessor_forward(self):
         self.assertEqual(CartItem.objects.get(pk=1).product, Product.objects.get(pk=1))
 
