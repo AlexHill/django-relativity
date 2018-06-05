@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/django-relativity.svg)](https://pypi.org/project/django-relativity/)
 [![Build Status](https://travis-ci.org/AlexHill/django-relativity.svg?branch=master)](https://travis-ci.org/AlexHill/django-relativity)
 
-django-relativity provides a `Relationship` field that lets you describe non-foreign-key relationships between your models and use them throughout the ORM.
+django-relativity provides a `Relationship` field that lets you declare the non-foreign-key relationships between your models and use them throughout the ORM.
 
 _Non-foreign-key relationships?_
 
@@ -11,7 +11,18 @@ Like the relationship between a node and its descendants in a tree, or between t
 
 _Use them throughout the ORM?_
 
-Yes, across joins, in filters, in methods like `prefetch_related()` or `values()` - anywhere Django expects to see a field.
+Yes, across joins, in `filter()`, in methods like `prefetch_related()` or `values()` - anywhere Django expects to see a field.
+
+## What problem does this solve?
+
+Sometimes the relationships between our models are more complex than equality between a primary key field on one model and a foreign key on another.
+
+For example: when working with trees, we very often need to find a given node's descendants - its children, their children, and so on. The exact query we have to run depends on how we've chosen to implement our tree structure at the database level, and fortunately there are mature libraries available to take care of that for us. [django-mptt](http://django-mptt.readthedocs.io/en/latest/models.html#get-descendants-include-self-false) and [django-treebeard](http://django-treebeard.readthedocs.io/en/latest/api.html#treebeard.models.Node.get_descendants) both provide methods called `get_descendants()` for exactly this purpose. These return a queryset selecting the node's descendants, which we can then filter further, or use as an argument to another filter, and so on. So what's the problem?
+
+The problem is that the node-descendants relationship is invisible to the Django ORM. We can't filter against it, like `Node.objects.filter(descendants__in=objs)`. We can't traverse it, like `Node.objects.filter(descendants__name__startswith="A")`. We can't prefetch it. None of the niceties that Django provides for working with relationships are available for us to use with this relationship, because it can't be declared as a `ManyToManyField` or `ForeignKey`.
+
+django-relativity fixes that, and makes all those ORM features work with almost any kind of relationship you can dream up.
+
 
 ## What does the code look like?
 
