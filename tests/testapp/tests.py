@@ -1,14 +1,17 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
+
 from testapp.models import (
-    Category,
-    Categorised,
     CartItem,
+    Categorised,
+    Category,
     MPTTPage,
     Page,
     Product,
     ProductFilter,
+    TBMPPage,
+    TBNSPage,
 )
 
 
@@ -35,17 +38,24 @@ class RelationshipTests(TestCase):
             "Top.Science.Astronomy.Cosmology",
         ]
 
-        cache = {}
+        mptt_cache = {}
+        tbmp_cache = {}
+        tbns_cache = {}
         slug_tuples = (tuple(s.split(".")) for s in slugs)
         for i, slug in enumerate(sorted(slug_tuples, key=len)):
-            cache[slug] = MPTTPage.objects.create(
-                pk=i, name=slug[-1], slug=".".join(slug), parent=cache.get(slug[:-1])
-            )
 
-        Page.objects.bulk_create(
-            Page(pk=i, slug=slug, name=slug.rsplit(".", 1)[-1])
-            for i, slug in enumerate(slugs)
-        )
+            kwargs = {"pk": i, "name": slug[-1], "slug": ".".join(slug)}
+            mptt_cache[slug] = MPTTPage.objects.create(parent=mptt_cache.get(slug[:-1]), **kwargs)
+
+            tbmp_parent = tbmp_cache.get(slug[:-1])
+            tbmp_cache[slug] = tbmp_parent.add_child(**kwargs) if tbmp_parent else TBMPPage.add_root(**kwargs)
+
+            tbns_parent = tbns_cache.get(slug[:-1])
+            if tbns_parent:
+                tbns_parent.refresh_from_db()
+            tbns_cache[slug] = tbns_parent.add_child(**kwargs) if tbns_parent else TBNSPage.add_root(**kwargs)
+
+            Page.objects.create(**kwargs)
 
         CartItem.objects.bulk_create(
             [
@@ -148,24 +158,28 @@ class RelationshipTests(TestCase):
 
         test_for(Page)
         test_for(MPTTPage)
+        test_for(TBMPPage)
+        test_for(TBNSPage)
 
     def test_m2m_recursive_accessor_reverse(self):
 
         def test_for(page_model):
             p = page_model.objects.get(slug="Top.Science.Astronomy")
             self.assertSeqEqual(
-                p.ascendants.values_list("slug", flat=True).order_by("slug"),
-                ["Top", "Top.Science"],
+                p.rootpath.values_list("slug", flat=True).order_by("slug"),
+                ["Top", "Top.Science", "Top.Science.Astronomy"],
             )
 
         test_for(Page)
         test_for(MPTTPage)
+        test_for(TBMPPage)
+        test_for(TBNSPage)
 
     def test_m2m_recursive_filter_forward(self):
 
         def test_for(page_model):
             self.assertSeqEqual(
-                page_model.objects.filter(descendants__slug__contains="Stars")
+                page_model.objects.filter(subtree__slug__contains="Stars")
                 .values_list("slug", flat=True)
                 .distinct()
                 .order_by("slug"),
@@ -174,11 +188,14 @@ class RelationshipTests(TestCase):
                     "Top.Collections",
                     "Top.Collections.Pictures",
                     "Top.Collections.Pictures.Astronomy",
+                    "Top.Collections.Pictures.Astronomy.Stars",
                 ],
             )
 
         test_for(Page)
         test_for(MPTTPage)
+        test_for(TBMPPage)
+        test_for(TBNSPage)
 
     def test_m2m_recursive_filter_reverse(self):
 
@@ -199,6 +216,8 @@ class RelationshipTests(TestCase):
 
         test_for(Page)
         test_for(MPTTPage)
+        test_for(TBMPPage)
+        test_for(TBNSPage)
 
     def test_m2m_recursive_prefetch_related_forward(self):
 
@@ -214,21 +233,25 @@ class RelationshipTests(TestCase):
 
         test_for(Page)
         test_for(MPTTPage)
+        test_for(TBMPPage)
+        test_for(TBNSPage)
 
     def test_m2m_recursive_prefetch_related_reverse(self):
 
         def test_for(page_model):
             qs = page_model.objects.filter(slug__startswith="Top.Science")
             with self.assertNumQueries(2 + qs.count()):
-                pages = qs.prefetch_related("ascendants")
+                pages = qs.prefetch_related("rootpath")
                 for page in pages:
                     self.assertEqual(
-                        list(page.ascendants.all()),
-                        list(page_model.objects.filter(descendants=page)),
+                        list(page.rootpath.all()),
+                        list(page_model.objects.filter(subtree=page)),
                     )
 
         test_for(Page)
         test_for(MPTTPage)
+        test_for(TBMPPage)
+        test_for(TBNSPage)
 
     def test_m2o_accessor_forward(self):
         self.assertEqual(CartItem.objects.get(pk=1).product, Product.objects.get(pk=1))

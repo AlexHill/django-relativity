@@ -1,1 +1,2 @@
 django-mptt
+django-treebeard

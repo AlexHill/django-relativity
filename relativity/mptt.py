@@ -37,7 +37,7 @@ class MPTTQ(Q):
 class MPTTDescendants(Relationship):
 
     def __init__(self, **kwargs):
-        kwargs["related_name"] = "ascendants"
+        kwargs.setdefault("related_name", "ascendants")
         kwargs.setdefault("to", "self")
         kwargs.setdefault(
             "predicate",
@@ -48,3 +48,18 @@ class MPTTDescendants(Relationship):
             ),
         )
         super(MPTTDescendants, self).__init__(**kwargs)
+
+
+class MPTTSubtree(Relationship):
+    def __init__(self, **kwargs):
+        kwargs.setdefault("related_name", "rootpath")
+        kwargs.setdefault("to", "self")
+        kwargs.setdefault(
+            "predicate",
+            MPTTQ(
+                tree_id=MPTTRef("tree_id"),
+                left__gte=MPTTRef("left"),
+                left__lt=MPTTRef("right"),
+            ),
+        )
+        super(MPTTSubtree, self).__init__(**kwargs)

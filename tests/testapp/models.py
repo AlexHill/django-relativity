@@ -6,9 +6,12 @@ from django.db.models.fields import Field
 from django.utils.encoding import python_2_unicode_compatible
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
+from treebeard.mp_tree import MP_Node
+from treebeard.ns_tree import NS_Node
 
 from relativity.fields import L, Relationship
-from relativity.mptt import MPTTDescendants
+from relativity.mptt import MPTTDescendants, MPTTSubtree
+from relativity.treebeard import MP_Descendants, NS_Descendants, MP_Subtree, NS_Subtree
 
 
 @Field.register_lookup
@@ -23,24 +26,39 @@ class NotEqual(Lookup):
 
 
 @python_2_unicode_compatible
-class MPTTPage(MPTTModel):
+class BasePage(models.Model):
     name = models.TextField()
     slug = models.TextField(unique=True, null=False, blank=False)
-    parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
-    )
 
-    descendants = MPTTDescendants()
+    class Meta:
+        abstract = True
 
     def __str__(self):
         return self.name
 
 
-@python_2_unicode_compatible
-class Page(models.Model):
-    name = models.TextField()
-    slug = models.TextField(unique=True, null=False, blank=False)
+class MPTTPage(BasePage, MPTTModel):
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
 
+    descendants = MPTTDescendants()
+    subtree = MPTTSubtree()
+
+
+class TBMPPage(BasePage, MP_Node):
+
+    descendants = MP_Descendants()
+    subtree = MP_Subtree()
+
+
+class TBNSPage(BasePage, NS_Node):
+
+    descendants = NS_Descendants()
+    subtree = NS_Subtree()
+
+
+class Page(BasePage):
     descendants = Relationship(
         "self",
         Q(slug__startswith=L("slug"), slug__ne=L("slug")),
