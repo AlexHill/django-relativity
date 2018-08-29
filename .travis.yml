@@ -20,6 +20,8 @@ matrix:
        env: DJANGO_VERSION=2.0
      - python: "pypy"
        env: DJANGO_VERSION=2.1
+     - python: "3.4"
+       env: DJANGO_VERSION=2.1
 install:
   - pip install -r test-requirements.txt
   - pip install "django==$DJANGO_VERSION.*"
