@@ -37,7 +37,7 @@ class BasePage(models.Model):
         return self.name
 
 
-class MPTTPage(BasePage, MPTTModel):
+class MPTTPage(MPTTModel, BasePage):
     parent = TreeForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
     )
@@ -46,13 +46,13 @@ class MPTTPage(BasePage, MPTTModel):
     subtree = MPTTSubtree()
 
 
-class TBMPPage(BasePage, MP_Node):
+class TBMPPage(MP_Node, BasePage):
 
     descendants = MP_Descendants()
     subtree = MP_Subtree()
 
 
-class TBNSPage(BasePage, NS_Node):
+class TBNSPage(NS_Node, BasePage):
 
     descendants = NS_Descendants()
     subtree = NS_Subtree()
