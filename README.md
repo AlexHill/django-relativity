@@ -21,12 +21,34 @@ For example: when working with trees, we very often need to find a given node's 
 
 The problem is that the node-descendants relationship is invisible to the Django ORM. We can't filter against it, like `Node.objects.filter(descendants__in=objs)`. We can't traverse it, like `Node.objects.filter(descendants__name__startswith="A")`. We can't prefetch it. None of the niceties that Django provides for working with relationships are available for us to use with this relationship, because it can't be declared as a `ManyToManyField` or `ForeignKey`.
 
-django-relativity fixes that, and makes all those ORM features work with almost any kind of relationship you can dream up.
+django-relativity lets all those ORM features work with almost any kind of relationship you can dream up.
 
+### MPTT and treebeard helpers
+
+If you use django-mptt or django-treebeard and you want to jump right in, relativity comes with fields to select a node's descendants and its subtree (which respectively exclude and include the current node). The default reverse relation names for these fields are `ascendants` and `rootpath`.
+
+```python
+# For django-mptt
+from relativity.mptt import MPTTDescendants, MPTTSubtree
+
+# for treebeard with materialised path
+from relativity.treebeard import MP_Descendants, MP_Subtree
+
+# for treebeard with nested sets
+from relativity.treebeard import NS_Descendants, NS_Subtree
+
+
+class TreeNode(MPTTModel):
+    ...
+    
+    # after defining all your other fields, including TreeForeignKey...
+    descendants = MPTTDescendants()
+    subtree = MPTTSubtree()
+```
 
 ## What does the code look like?
 
-Here's are some models for an imaginary website about chemistry, where users can filter compounds by regular expression and save their searches:
+Here are some models for an imaginary website about chemistry, where users can filter compounds by regular expression and save their searches:
 
 ```python
 from relativity.fields import L, Relationship
