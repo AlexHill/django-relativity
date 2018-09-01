@@ -1,6 +1,6 @@
 # django-relativity changelog
 
-## [Unreleased]
+## 0.1.4 - unreleased
 - Allowed for callable predicates (thanks django-reverse-unique)
 - Fix bug in get_forward_related_filter() causing unnecessarily complicated queries
 - Fix bug when building exclude filters
