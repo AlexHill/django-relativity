@@ -142,7 +142,7 @@ class CartItem(models.Model):
     product_code = models.TextField()
     product = Relationship(
         to=Product,
-        predicate=Q(product_code=L('sku')),
+        predicate=Q(sku=L('product_code')),
         multiple=False,
     )
 ```
