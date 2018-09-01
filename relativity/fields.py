@@ -60,8 +60,11 @@ class Restriction(object):
             lookup_query.tables = list(aliases_related)
 
         lookup_query._relationship_field_query = field_query
-        q = self.predicate.resolve_expression(
-            query=lookup_query, allow_joins=False, reuse=compiler.query.used_aliases
+
+        predicate = self.predicate() if callable(self.predicate) else self.predicate
+
+        q = predicate.resolve_expression(
+            query=lookup_query, allow_joins=True, reuse=compiler.query.used_aliases
         )
         result = compiler.compile(q)
         return result
@@ -238,10 +241,11 @@ class CustomForeignObjectRel(ForeignObjectRel):
         that are related to obj.
         """
         q = self.field.predicate
+        q = q() if callable(q) else q
 
         # If this is a simple restriction that can be expressed as an AND of
         # two basic field lookups, we can return a dictionary of filters...
-        if q.connector == Q.AND and all(type(c) != tuple for c in q.children):
+        if q.connector == Q.AND and all(type(c) == tuple for c in q.children):
             return {
                 lookup: getattr(obj, v.name) if isinstance(v, L) else v
                 for lookup, v in q.children
@@ -334,10 +338,11 @@ class Relationship(models.ForeignObject):
         that are related to obj.
         """
         q = self.field.predicate
+        q = q() if callable(q) else q
 
         # If this is a simple restriction that can be expressed as an AND of
         # two basic field lookups, we can return a dictionary of filters...
-        if q.connector == Q.AND and all(type(c) != tuple for c in q.children):
+        if q.connector == Q.AND and all(type(c) == tuple for c in q.children):
             return {
                 lookup: getattr(obj, v.name) if isinstance(v, L) else v
                 for lookup, v in q.children
