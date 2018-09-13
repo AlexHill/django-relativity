@@ -150,3 +150,8 @@ class CartItem(models.Model):
 ## What state is this project in?
 
 This project is in active development. Feel free to try it out. Things not covered by the tests have every chance of not working.
+
+
+## Note on migrations for Django 1.11 users
+
+Before Django 2.0, Q objects and expressions were not serialisable in migrations. Relativity includes backported code to work around this problem. To make migrations work in Django 1.11, import `Q` from `relativity.compat` and use that in your predicates instead of Django's `Q`.

@@ -386,3 +386,16 @@ class L(F):
         return super(L, self).resolve_expression(
             query._relationship_field_query, allow_joins, reuse, summarize, for_save
         )
+
+
+if django.VERSION < (2,):
+    from django.utils.deconstruct import deconstructible
+
+    @deconstructible
+    class L(L):
+
+        def __eq__(self, other):
+            return self.__class__ == other.__class__ and self.name == other.name
+
+        def __hash__(self):
+            return hash(self.name)
