@@ -1,17 +1,26 @@
 import django
-from django.db.models.query_utils import Q as DjangoQ
+from django.db import models
+from django.utils.deconstruct import deconstructible
 
-
-__all__ = ('Q',)
+__all__ = ('F', 'Q')
 
 if django.VERSION >= (2,):
-    Q = DjangoQ
+    F = models.F
+    Q = models.Q
 else:
-    class Q(DjangoQ):
+    @deconstructible
+    class F(models.F):
+        def __eq__(self, other):
+            return self.__class__ == other.__class__ and self.name == other.name
+
+        def __hash__(self):
+            return hash(self.name)
+
+    class Q(models.Q):
         def __init__(self, *args, **kwargs):
             connector = kwargs.pop('_connector', None)
             negated = kwargs.pop('_negated', False)
-            super(DjangoQ, self).__init__(children=list(args) + sorted(kwargs.items()), connector=connector, negated=negated)
+            super(models.Q, self).__init__(children=list(args) + sorted(kwargs.items()), connector=connector, negated=negated)
 
         def deconstruct(self):
             path = '%s.%s' % (self.__class__.__module__, self.__class__.__name__)

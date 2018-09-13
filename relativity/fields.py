@@ -1,8 +1,10 @@
+from __future__ import unicode_literals, absolute_import
+
 from collections import OrderedDict
 
 import django
 from django.db import models, connections
-from django.db.models import ForeignObject, F
+from django.db.models import ForeignObject
 from django.db.models.fields.related_descriptors import (
     ReverseManyToOneDescriptor,
     ReverseOneToOneDescriptor,
@@ -10,6 +12,8 @@ from django.db.models.fields.related_descriptors import (
 from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.db.models.query_utils import PathInfo, Q
 from django.utils.functional import cached_property
+
+from .compat import F
 
 
 class Restriction(object):
@@ -386,16 +390,3 @@ class L(F):
         return super(L, self).resolve_expression(
             query._relationship_field_query, allow_joins, reuse, summarize, for_save
         )
-
-
-if django.VERSION < (2,):
-    from django.utils.deconstruct import deconstructible
-
-    @deconstructible
-    class L(L):
-
-        def __eq__(self, other):
-            return self.__class__ == other.__class__ and self.name == other.name
-
-        def __hash__(self):
-            return hash(self.name)
