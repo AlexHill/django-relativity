@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.test import TestCase
 
-from testapp.models import (
+from .models import (
     CartItem,
     Categorised,
     Category,
