@@ -221,6 +221,10 @@ class CustomForeignObjectRel(ForeignObjectRel):
     def local_related_fields(self):
         return []
 
+    @property
+    def related_fields(self):
+        return []
+
     def get_attname(self):
         return self.name
 
@@ -362,7 +366,7 @@ class Relationship(models.ForeignObject):
         return []
 
     def contribute_to_class(self, cls, name, **kwargs):
-        # kwargs['virtual_only'] = True
+        kwargs['private_only'] = True
         super(ForeignObject, self).contribute_to_class(cls, name, **kwargs)
         setattr(cls, self.name, self.accessor_class(self))
 
@@ -370,12 +374,12 @@ class Relationship(models.ForeignObject):
         if django.VERSION < (2, 0):
             to_opts = self.rel.to._meta
             from_opts = self.model._meta
-            return [PathInfo(from_opts, to_opts, (to_opts.pk,), self, False, False)]
+            return [PathInfo(from_opts, to_opts, (to_opts.pk,), self, True, False)]
         to_opts = self.remote_field.model._meta
         from_opts = self.model._meta
         return [
             PathInfo(
-                from_opts, to_opts, (to_opts.pk,), self, False, False, filtered_relation
+                from_opts, to_opts, (to_opts.pk,), self, True, False, filtered_relation
             )
         ]
 
