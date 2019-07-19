@@ -305,6 +305,9 @@ class Relationship(models.ForeignObject):
         kwargs.setdefault("on_delete", models.DO_NOTHING)
         kwargs.setdefault("from_fields", [])
         kwargs.setdefault("to_fields", [])
+        kwargs.setdefault("null", True)
+        kwargs.setdefault("editable", False)
+        kwargs.setdefault("blank", True)
         super(Relationship, self).__init__(to, **kwargs)
         self.predicate = predicate
 
