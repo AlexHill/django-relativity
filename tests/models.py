@@ -148,8 +148,6 @@ class ProductFilter(models.Model):
         related_name="filters",
     )
 
-    blah = Relationship
-
     def __str__(self):
         return "ProductFilter #%d: %s size %s" % (self.pk, self.fcolour, self.fsize)
 
