@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from unittest import expectedFailure
+
 from django.test import TestCase
 
 from .models import (
@@ -101,7 +103,6 @@ class RelationshipTests(TestCase):
         )
 
     def test_m2m_accessor_forward(self):
-
         self.assertSeqEqual(
             Category.objects.get(code="AAA").members.all(),
             [Categorised.objects.get(pk=1), Categorised.objects.get(pk=3)],
@@ -114,10 +115,17 @@ class RelationshipTests(TestCase):
         )
 
     def test_m2m_filter_forward(self):
-
         self.assertSeqEqual(
             Category.objects.filter(members__pk__in=[4, 6]).distinct().order_by("pk"),
             Category.objects.filter(pk__in=[2, 3]).order_by("pk"),
+        )
+
+    # TODO: fix this or make it break loudly
+    @expectedFailure
+    def test_m2m_exclude_forward(self):
+        self.assertSeqEqual(
+            Category.objects.exclude(members__pk__in=[4, 6]).distinct().order_by("pk"),
+            Category.objects.exclude(pk__in=[2, 3]).order_by("pk"),
         )
 
     def test_m2m_filter_reverse(self):
