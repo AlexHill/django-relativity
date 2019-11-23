@@ -385,8 +385,8 @@ class Relationship(models.ForeignObject):
 class L(F):
 
     def resolve_expression(
-        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False, **kwargs
     ):
         return super(L, self).resolve_expression(
-            query._relationship_field_query, allow_joins, reuse, summarize, for_save
+            query._relationship_field_query, allow_joins, reuse, summarize, for_save, **kwargs
         )

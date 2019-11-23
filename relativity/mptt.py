@@ -5,12 +5,12 @@ from relativity.fields import L, Relationship
 class MPTTRef(L):
 
     def resolve_expression(
-        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False, **kwargs
     ):
         model = query._relationship_field_query.model
         name = getattr(model._mptt_meta, self.name + "_attr")
         return L(name).resolve_expression(
-            query, allow_joins, reuse, summarize, for_save
+            query, allow_joins, reuse, summarize, for_save, **kwargs
         )
 
 
@@ -21,7 +21,7 @@ class MPTTQ(Q):
         self.filters = kwargs
 
     def resolve_expression(
-        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False, **kwargs
     ):
         translate_lookups = query.model._tree_manager._translate_lookups
         translated_filters = translate_lookups(**self.filters)
@@ -29,7 +29,7 @@ class MPTTQ(Q):
         # We must promote any new joins to left outer joins so that when Q is
         # used as an expression, rows aren't filtered due to joins.
         return clone_q.resolve_expression(
-            query, allow_joins, reuse, summarize, for_save
+            query, allow_joins, reuse, summarize, for_save, **kwargs
         )
 
 
