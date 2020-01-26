@@ -5,12 +5,12 @@ from relativity.fields import L, Relationship
 class MPTTRef(L):
 
     def resolve_expression(
-        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False, simple_col=False
     ):
         model = query._relationship_field_query.model
         name = getattr(model._mptt_meta, self.name + "_attr")
         return L(name).resolve_expression(
-            query, allow_joins, reuse, summarize, for_save
+            query, allow_joins, reuse, summarize, for_save, simple_col
         )
 
 
