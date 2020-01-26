@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 import django
 from django.db import models, connections
-from django.db.models import ForeignObject
+from django.db.models import F, ForeignObject
 from django.db.models.fields.related_descriptors import (
     ReverseManyToOneDescriptor,
     ReverseOneToOneDescriptor,
@@ -12,8 +12,6 @@ from django.db.models.fields.related_descriptors import (
 from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.db.models.query_utils import PathInfo, Q
 from django.utils.functional import cached_property
-
-from .compat import F
 
 
 class Restriction(object):
