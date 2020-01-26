@@ -76,6 +76,7 @@ class Restriction(object):
 
 def create_relationship_many_manager(base_manager, rel):
 
+    # noinspection PyProtectedMember
     class RelationshipManager(base_manager):
 
         def __init__(self, instance):
@@ -101,9 +102,6 @@ def create_relationship_many_manager(base_manager, rel):
             if self._db:
                 queryset = queryset.using(self._db)
             queryset = queryset.filter(**self.core_filters)
-            queryset._known_related_objects = {
-                self.field: {self.instance.pk: self.instance}
-            }
             return queryset
 
         def _remove_prefetched_objects(self):
@@ -261,19 +259,18 @@ class CustomForeignObjectRel(ForeignObjectRel):
             return {self.name: obj}
 
 
+# noinspection PyProtectedMember
 class ManyToManyRelationshipDescriptor(ReverseManyToOneDescriptor):
-
     @cached_property
     def related_manager_cls(self):
         related_model = self.rel.related_model
-
         manager = create_relationship_many_manager(
             related_model._default_manager.__class__, self.rel
         )
-
         return manager
 
 
+# noinspection PyProtectedMember
 class Relationship(models.ForeignObject):
     """
     This is a Django model field.
@@ -383,10 +380,10 @@ class Relationship(models.ForeignObject):
 
 
 class L(F):
-
     def resolve_expression(
-        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False, simple_col=False,
     ):
+        # noinspection PyProtectedMember
         return super(L, self).resolve_expression(
             query._relationship_field_query, allow_joins, reuse, summarize, for_save
         )

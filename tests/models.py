@@ -3,9 +3,9 @@ from __future__ import absolute_import, unicode_literals
 from django.db import models
 from django.db.models import Lookup
 from django.db.models.fields import Field
-from django.utils.encoding import python_2_unicode_compatible
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
+from six import python_2_unicode_compatible
 from treebeard.mp_tree import MP_Node
 from treebeard.ns_tree import NS_Node
 
