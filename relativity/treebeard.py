@@ -1,4 +1,5 @@
-from relativity.compat import Q
+from django.db.models import Q
+
 from relativity.fields import Relationship, L
 
 

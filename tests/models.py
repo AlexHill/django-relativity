@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.db import models
-from django.db.models import Lookup
+from django.db.models import Lookup, Q
 from django.db.models.fields import Field
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
@@ -9,7 +9,6 @@ from six import python_2_unicode_compatible
 from treebeard.mp_tree import MP_Node
 from treebeard.ns_tree import NS_Node
 
-from relativity.compat import Q
 from relativity.fields import L, Relationship
 from relativity.mptt import MPTTDescendants, MPTTSubtree
 from relativity.treebeard import MP_Descendants, NS_Descendants, MP_Subtree, NS_Subtree
@@ -90,7 +89,9 @@ class Categorised(models.Model):
 class CategoryBase(models.Model):
     code = models.CharField(unique=True, max_length=255)
     members = Relationship(
-        Categorised, Q(category_codes__contains=L("code")), related_name="categories"
+        Categorised,
+        Q(category_codes__contains=L("code")),
+        related_name="categories",
     )
 
     class Meta:
