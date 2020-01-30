@@ -1,10 +1,7 @@
+import environ
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-    },
-}
+env = environ.Env()
+DATABASES = {'default': env.db(default="sqlite:///")}
 
 INSTALLED_APPS = ["tests"]
 

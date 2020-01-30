@@ -1,2 +1,3 @@
+django-environ
 django-mptt
 django-treebeard
