@@ -140,7 +140,8 @@ def create_relationship_many_manager(base_manager, rel):
             # i.e. the joined table, not the base table.
             join_table = queryset.query.table_map[pk.model._meta.db_table][-1]
             connection = connections[queryset.db]
-            qn = connection.ops.quote_name
+            compiler = queryset.query.get_compiler(using=queryset.db)
+            qn = compiler.quote_name_unless_alias
             queryset = queryset.extra(
                 select={
                     "_prefetch_related_val_%s"
