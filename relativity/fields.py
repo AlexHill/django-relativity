@@ -145,7 +145,7 @@ def create_relationship_many_manager(base_manager, rel):
                 select={
                     "_prefetch_related_val_%s"
                     % f.attname: "%s.%s"
-                    % (qn(join_table), qn(f.column))
+                    % (join_table, qn(f.column))
                     for f in [pk]
                 }
             )
