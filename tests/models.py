@@ -29,7 +29,7 @@ class NotEqual(Lookup):
 @python_2_unicode_compatible
 class BasePage(models.Model):
     name = models.TextField()
-    slug = models.TextField(unique=True, null=False, blank=False)
+    slug = models.CharField(unique=True, null=False, blank=False, max_length=255)
 
     class Meta:
         abstract = True
@@ -80,7 +80,7 @@ class Categorised(models.Model):
 
 @python_2_unicode_compatible
 class Category(models.Model):
-    code = models.TextField(unique=True)
+    code = models.CharField(unique=True, max_length=255)
     members = Relationship(
         Categorised, Q(category_codes__contains=L("code")), related_name="categories"
     )
@@ -141,7 +141,7 @@ class ProductFilter(models.Model):
 
 @python_2_unicode_compatible
 class User(models.Model):
-    username = models.TextField(primary_key=True)
+    username = models.CharField(primary_key=True, max_length=255)
 
     def __str__(self):
         return self.username
