@@ -44,7 +44,7 @@ class RelationshipTests(TestCase):
         slug_tuples = (tuple(s.split(".")) for s in slugs)
         for i, slug in enumerate(sorted(slug_tuples, key=len)):
 
-            kwargs = {"pk": i, "name": slug[-1], "slug": ".".join(slug)}
+            kwargs = {"name": slug[-1], "slug": ".".join(slug)}
             mptt_cache[slug] = MPTTPage.objects.create(parent=mptt_cache.get(slug[:-1]), **kwargs)
 
             tbmp_parent = tbmp_cache.get(slug[:-1])
