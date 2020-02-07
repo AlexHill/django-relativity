@@ -125,7 +125,7 @@ matrix:
 
 install:
   - pip install -r test-requirements.txt
-  - bash -c "if [[ $DATABASE_URL = postgres* ]]; then pip install psycopg2-binary; fi; "
+  - bash -c "if [[ $DATABASE_URL = postgres* ]]; then if [[ $TRAVIS_PYTHON_VERSION == pypy* ]]; then pip install psycopg2cffi; else pip install pyscopg2-binary; fi; fi;"
   - bash -c "if [[ $DATABASE_URL = mysql* ]]; then pip install mysqlclient; fi; "
   - pip install "django==$DJANGO_VERSION"
   - pip install -e .
