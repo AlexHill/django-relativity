@@ -1,5 +1,10 @@
 # django-relativity changelog
 
+## 0.2.0 - 2020-02-08
+- Relationship now works without generating migrations
+- Removed all old compat code
+- Added testing again Django master
+
 ## 0.1.5 - 2020-02-07
 - Fixed and added testing against PostgreSQL and MySQL/MariaDB
 - Added support for Django 2.2 and 3.0
