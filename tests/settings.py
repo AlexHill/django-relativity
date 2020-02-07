@@ -1,3 +1,9 @@
+try:
+    from psycopg2cffi import compat
+    compat.register()
+except ImportError:
+    pass
+
 import environ
 
 env = environ.Env()
