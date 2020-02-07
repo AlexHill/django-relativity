@@ -25,6 +25,29 @@ templates:
 matrix:
   fast_finish: true
   include:
+    - { python: pypy, env: [*django111, *postgres], <<: *pgdb}
+    - { python: pypy, env: [*django111, *mysql], <<: *mariadb}
+    - { python: pypy, env: [*django111, *sqlite]}
+
+    - { python: pypy3, env: [*django111, *postgres], <<: *pgdb}
+    - { python: pypy3, env: [*django111, *mysql], <<: *mariadb}
+    - { python: pypy3, env: [*django111, *sqlite]}
+    - { python: pypy3, env: [*django20, *postgres], <<: *pgdb}
+    - { python: pypy3, env: [*django20, *mysql], <<: *mariadb}
+    - { python: pypy3, env: [*django20, *sqlite]}
+    - { python: pypy3, env: [*django21, *postgres], <<: *pgdb}
+    - { python: pypy3, env: [*django21, *mysql], <<: *mariadb}
+    - { python: pypy3, env: [*django21, *sqlite]}
+    - { python: pypy3, env: [*django22, *postgres], <<: *pgdb}
+    - { python: pypy3, env: [*django22, *mysql], <<: *mariadb}
+    - { python: pypy3, env: [*django22, *sqlite]}
+    - { python: pypy3, env: [*django30, *postgres], <<: *pgdb}
+    - { python: pypy3, env: [*django30, *mysql], <<: *mariadb}
+    - { python: pypy3, env: [*django30, *sqlite]}
+    - { python: pypy3, env: [*djangomaster, *postgres], <<: *pgdb}
+    - { python: pypy3, env: [*djangomaster, *mysql], <<: *mariadb}
+    - { python: pypy3, env: [*djangomaster, *sqlite]}
+
     - { python: 2.7, env: [*django111, *postgres], <<: *pgdb}
     - { python: 2.7, env: [*django111, *mysql], <<: *mariadb}
     - { python: 2.7, env: [*django111, *sqlite]}
@@ -95,28 +118,6 @@ matrix:
     - { python: 3.8, env: [*djangomaster, *mysql], <<: *mariadb}
     - { python: 3.8, env: [*djangomaster, *sqlite]}
 
-    - { python: pypy, env: [*django111, *postgres], <<: *pgdb}
-    - { python: pypy, env: [*django111, *mysql], <<: *mariadb}
-    - { python: pypy, env: [*django111, *sqlite]}
-
-    - { python: pypy3, env: [*django111, *postgres], <<: *pgdb}
-    - { python: pypy3, env: [*django111, *mysql], <<: *mariadb}
-    - { python: pypy3, env: [*django111, *sqlite]}
-    - { python: pypy3, env: [*django20, *postgres], <<: *pgdb}
-    - { python: pypy3, env: [*django20, *mysql], <<: *mariadb}
-    - { python: pypy3, env: [*django20, *sqlite]}
-    - { python: pypy3, env: [*django21, *postgres], <<: *pgdb}
-    - { python: pypy3, env: [*django21, *mysql], <<: *mariadb}
-    - { python: pypy3, env: [*django21, *sqlite]}
-    - { python: pypy3, env: [*django22, *postgres], <<: *pgdb}
-    - { python: pypy3, env: [*django22, *mysql], <<: *mariadb}
-    - { python: pypy3, env: [*django22, *sqlite]}
-    - { python: pypy3, env: [*django30, *postgres], <<: *pgdb}
-    - { python: pypy3, env: [*django30, *mysql], <<: *mariadb}
-    - { python: pypy3, env: [*django30, *sqlite]}
-    - { python: pypy3, env: [*djangomaster, *postgres], <<: *pgdb}
-    - { python: pypy3, env: [*djangomaster, *mysql], <<: *mariadb}
-    - { python: pypy3, env: [*djangomaster, *sqlite]}
   allow_failures:
     - env: [*djangomaster, *postgres]
     - env: [*djangomaster, *mysql]
