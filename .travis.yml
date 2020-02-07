@@ -30,10 +30,8 @@ matrix:
     - { python: 2.7, env: [*django111, *sqlite]}
 
     - { python: 3.4, env: [*django111, *postgres], <<: *pgdb}
-    - { python: 3.4, env: [*django111, *mysql], <<: *mariadb}
     - { python: 3.4, env: [*django111, *sqlite]}
     - { python: 3.4, env: [*django20, *postgres], <<: *pgdb}
-    - { python: 3.4, env: [*django20, *mysql], <<: *mariadb}
     - { python: 3.4, env: [*django20, *sqlite]}
 
     - { python: 3.5, env: [*django111, *postgres], <<: *pgdb}
