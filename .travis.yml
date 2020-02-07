@@ -130,7 +130,7 @@ install:
   - bash -c "if [[ $DATABASE_URL = postgres* ]] && [[ $TRAVIS_PYTHON_VERSION == pypy* ]]; then pip install psycopg2cffi; fi;"
   - bash -c "if [[ $DATABASE_URL = postgres* ]] && [[ $TRAVIS_PYTHON_VERSION != pypy* ]]; then pip install psycopg2-binary; fi;"
   - bash -c "if [[ $DATABASE_URL = mysql* ]]; then pip install mysqlclient; fi; "
-  - pip install "django==$DJANGO_VERSION"
+  - bash -c "if [[ $DJANGO_VERSION = master ]]; then pip install https://github.com/django/django/archive/master.zip; else pip install "django==$DJANGO_VERSION"; fi;"
   - pip install -e .
 script:
   - django-admin test
