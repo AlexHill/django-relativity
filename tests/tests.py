@@ -12,6 +12,8 @@ from .models import (
     ProductFilter,
     TBMPPage,
     TBNSPage,
+    SavedFilter,
+    User,
 )
 
 
@@ -303,4 +305,26 @@ class RelationshipTests(TestCase):
 
         self.assertSeqEqual(
             ProductFilter.objects.filter(products__cart_items__in=cart_items), [f, f]
+        )
+
+    def test_m2m(self):
+        users = User.objects.bulk_create(
+            User(pk=uid, username='User %d' % uid)
+            for uid in range(1, 4)
+        )
+
+        sf = SavedFilter.objects.bulk_create([
+            SavedFilter(pk=1, user=users[0], search_regex='a'),
+            SavedFilter(pk=2, user=users[1], search_regex='a'),
+            SavedFilter(pk=3, user=users[0], search_regex='a'),
+        ])
+
+        self.assertSeqEqual(
+            User.objects.filter(savedfilter__pk__in=[1, 2]),
+            User.objects.filter(pk__in=[1, 2]),
+        )
+
+        self.assertSeqEqual(
+            User.objects.exclude(savedfilter__pk__in=[1, 2]),
+            User.objects.exclude(pk__in=[1, 2]),
         )

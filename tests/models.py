@@ -59,7 +59,8 @@ class TBNSPage(NS_Node, BasePage):
     subtree = NS_Subtree()
 
 
-class Page(BasePage):
+@python_2_unicode_compatible
+class PageBase(BasePage):
     descendants = Relationship(
         "self",
         Q(slug__startswith=L("slug"), slug__ne=L("slug")),
@@ -70,8 +71,15 @@ class Page(BasePage):
         "self", Q(slug__startswith=L("slug")), related_name="rootpath"
     )
 
+    class Meta:
+        abstract = True
+
     def __str__(self):
         return self.name
+
+
+class Page(PageBase):
+    pass
 
 
 class Categorised(models.Model):
@@ -79,14 +87,21 @@ class Categorised(models.Model):
 
 
 @python_2_unicode_compatible
-class Category(models.Model):
+class CategoryBase(models.Model):
     code = models.CharField(unique=True, max_length=255)
     members = Relationship(
         Categorised, Q(category_codes__contains=L("code")), related_name="categories"
     )
 
+    class Meta:
+        abstract = True
+
     def __str__(self):
         return "Category #%d: %s" % (self.pk, self.code)
+
+
+class Category(CategoryBase):
+    pass
 
 
 @python_2_unicode_compatible
