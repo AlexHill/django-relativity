@@ -7,7 +7,7 @@ setuptools.setup(
     author='Alex Hill',
     author_email='alex@hill.net.au',
     name='django-relativity',
-    version='0.1.4',
+    version='0.1.5',
     description='A flexible relationship field for the Django ORM.',
     long_description=long_description,
     long_description_content_type='text/markdown',

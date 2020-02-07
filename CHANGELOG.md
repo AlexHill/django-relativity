@@ -1,5 +1,9 @@
 # django-relativity changelog
 
+## 0.1.5 - 2020-02-07
+- Fixed and added testing against PostgreSQL and MySQL/MariaDB
+- Added support for Django 2.2 and 3.0
+
 ## 0.1.4 - 2018-09-14
 - Allowed for callable predicates (thanks django-reverse-unique)
 - Fix bug in get_forward_related_filter() causing unnecessarily complicated queries
