@@ -1,10 +1,13 @@
+try:
+    from psycopg2cffi import compat
+    compat.register()
+except ImportError:
+    pass
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-    },
-}
+import environ
+
+env = environ.Env()
+DATABASES = {'default': env.db(default="sqlite:///")}
 
 INSTALLED_APPS = ["tests"]
 
