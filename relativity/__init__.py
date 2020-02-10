@@ -8,6 +8,8 @@ def is_referenced_by_foreign_key(state, model_name_lower, field, field_name):
     This is a hack to work around migration problems when using a Relationship
     field, which has f.to_fields == []. The change is simply to swap the
     operands of an and, so should have no effect on behaviour.
+
+    The monkeypatched code is identical in all supported versions of Django.
     """
     for state_app_label, state_model in state.models:
         for _, f in state.models[state_app_label, state_model].fields:
