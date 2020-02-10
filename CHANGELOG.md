@@ -1,5 +1,9 @@
 # django-relativity changelog
 
+## 0.2.1 - 2020-02-10
+- Restored Q and F from relativity.compat as aliases to django.db.models, with a deprecation warning on import
+- Added monkeypatch for migrations where a model with a Relationship is the target of a ForeignKey
+
 ## 0.2.0 - 2020-02-08
 - Relationship now works without generating migrations
 - Removed all old compat code

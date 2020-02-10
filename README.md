@@ -149,9 +149,11 @@ class CartItem(models.Model):
 
 ## What state is this project in?
 
-This project is in active development. Feel free to try it out. Things not covered by the tests have every chance of not working.
+This project is used in production and in active development. Things not covered by the tests have every chance of not working.
 
 
-## Note on migrations for Django 1.11 users
+## Migrating from relativity < 0.2.0
 
-Before Django 2.0, Q objects and expressions were not serialisable in migrations. Relativity includes backported code to work around this problem. To make migrations work in Django 1.11, import `Q` from `relativity.compat` and use that in your predicates instead of Django's `Q`.
+Before 0.2.0, it was necessary to import a backported version of `django.db.models.Q` from `relativity.compat` in order to make migrations work in Django 1.11. From 0.2.0 onwards, that's no longer necessary. The backported `Q` still exists as an alias to django.db.models, but a DeprecationWarning will be issued on import. You should replace all uses with Django's standard `Q`.
+
+From 0.2.0 onwards, relativity's fields do not generate migrations. When migrating from older versions, I recommend simply removing all references to relativity's fields from the original migrations that created them, rather than generating new migrations removing the virtual fields.
