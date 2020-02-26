@@ -1,15 +1,17 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.db import models
-from django.db.models import Lookup, Q
+from django.db.models import Lookup, Q, F, ExpressionWrapper
 from django.db.models.fields import Field
+from django.db.models.lookups import Contains, Exact
+from django.db.models.sql.where import WhereNode, AND
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 from six import python_2_unicode_compatible
 from treebeard.mp_tree import MP_Node
 from treebeard.ns_tree import NS_Node
 
-from relativity.fields import L, Relationship
+from relativity.fields import L, Relationship, P
 from relativity.mptt import MPTTDescendants, MPTTSubtree
 from relativity.treebeard import MP_Descendants, NS_Descendants, MP_Subtree, NS_Subtree
 
@@ -90,7 +92,8 @@ class CategoryBase(models.Model):
     code = models.CharField(unique=True, max_length=255)
     members = Relationship(
         Categorised,
-        Q(category_codes__contains=L("code")),
+        # Q(category_codes__contains=L("code")),
+        Q(P(Contains, F('category_codes'), L("code"))),
         related_name="categories",
     )
 
@@ -145,7 +148,7 @@ class ProductFilter(models.Model):
 
     cartitems = Relationship(
         CartItem,
-        Q(product__colour=L("fcolour"), product__size__gte=L("fsize")),
+        Q(product__colour=L("fcolour")) & Q(P(Exact, F("product__size"), L("fsize"))),
         related_name="filters",
     )
 

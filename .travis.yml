@@ -130,7 +130,6 @@ matrix:
 
 
 install:
-  - bash -c "echo $TRAVIS_PYTHON_VERSION"
   - pip install -r test-requirements.txt
   - bash -c "if [[ $DATABASE_URL = postgres* ]] && [[ $TRAVIS_PYTHON_VERSION == pypy* ]]; then pip install psycopg2cffi; fi;"
   - bash -c "if [[ $DATABASE_URL = postgres* ]] && [[ $TRAVIS_PYTHON_VERSION != pypy* ]]; then pip install psycopg2-binary; fi;"

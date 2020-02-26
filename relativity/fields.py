@@ -1,6 +1,7 @@
 from __future__ import unicode_literals, absolute_import
 
 from collections import OrderedDict
+from copy import copy
 
 import django
 from django.db import models, connections
@@ -393,3 +394,28 @@ class L(F):
         return super(L, self).resolve_expression(
             query._relationship_field_query, allow_joins, reuse, summarize, for_save
         )
+
+
+class P(object):
+    conditional = True
+
+    def resolve_expression(self, query):
+        return self.lookup(
+            query.resolve_lookup_value(
+                self.lhs,
+                can_reuse=query.used_aliases,
+                allow_joins=True,
+                simple_col=False,
+            ),
+            query.resolve_lookup_value(
+                self.rhs,
+                can_reuse=query.used_aliases,
+                allow_joins=True,
+                simple_col=False,
+            )
+        )
+
+    def __init__(self, lookup, lhs, rhs):
+        self.lookup = lookup
+        self.lhs = lhs
+        self.rhs = rhs
