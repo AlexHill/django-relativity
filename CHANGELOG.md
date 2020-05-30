@@ -1,6 +1,6 @@
 # django-relativity changelog
 
-## unreleased
+## 0.2.2 - 2020-05-30
 - Fixed crash when reverse_multiple=False
 
 ## 0.2.1 - 2020-02-10
