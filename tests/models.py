@@ -14,6 +14,19 @@ from relativity.mptt import MPTTDescendants, MPTTSubtree
 from relativity.treebeard import MP_Descendants, NS_Descendants, MP_Subtree, NS_Subtree
 
 
+class LinkedNode(models.Model):
+    name = models.CharField(max_length=30)
+    prev_id = models.IntegerField(null=True)
+
+    next = Relationship(
+        "self",
+        predicate=Q(prev_id=L('id')),
+        reverse_multiple=False,
+        multiple=False,
+        related_name="prev",
+    )
+
+
 @Field.register_lookup
 class NotEqual(Lookup):
     lookup_name = "ne"

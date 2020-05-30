@@ -77,11 +77,9 @@ def create_relationship_many_manager(base_manager, rel):
     class RelationshipManager(base_manager):
         def __init__(self, instance):
             super(RelationshipManager, self).__init__()
-
             self.instance = instance
             self.model = rel.related_model
             self.field = rel.field
-
             self.core_filters = {self.field.name: instance}
 
         def __call__(self, **kwargs):
@@ -262,7 +260,7 @@ class CustomForeignObjectRel(ForeignObjectRel):
 
 
 # noinspection PyProtectedMember
-class ManyToManyRelationshipDescriptor(ReverseManyToOneDescriptor):
+class MultipleRelationshipDescriptor(ReverseManyToOneDescriptor):
     @cached_property
     def related_manager_cls(self):
         related_model = self.rel.related_model
@@ -270,6 +268,10 @@ class ManyToManyRelationshipDescriptor(ReverseManyToOneDescriptor):
             related_model._default_manager.__class__, self.rel
         )
         return manager
+
+
+class SingleRelationshipDescriptor(ReverseOneToOneDescriptor):
+    pass
 
 
 # noinspection PyProtectedMember
@@ -290,18 +292,16 @@ class Relationship(models.ForeignObject):
     def __init__(self, to, predicate, **kwargs):
         self.multiple = kwargs.pop("multiple", True)
         self.reverse_multiple = kwargs.pop("reverse_multiple", True)
-        if self.multiple and self.reverse_multiple:
-            self.accessor_class = ManyToManyRelationshipDescriptor
-            self.related_accessor_class = ManyToManyRelationshipDescriptor
+
+        if self.multiple:
+            self.accessor_class = MultipleRelationshipDescriptor
         else:
-            if self.multiple:
-                self.accessor_class = ManyToManyRelationshipDescriptor
-            else:
-                self.accessor_class = ReverseOneToOneDescriptor
-            if self.reverse_multiple:
-                self.related_accessor_class = ManyToManyRelationshipDescriptor
-            else:
-                self.related_accessor_class = ReverseOneToOneDescriptor
+            self.accessor_class = SingleRelationshipDescriptor
+
+        if self.reverse_multiple:
+            self.related_accessor_class = MultipleRelationshipDescriptor
+        else:
+            self.related_accessor_class = SingleRelationshipDescriptor
 
         kwargs.setdefault("on_delete", models.DO_NOTHING)
         kwargs.setdefault("from_fields", [])
@@ -343,21 +343,7 @@ class Relationship(models.ForeignObject):
         Return the filter arguments which select the instances of self.model
         that are related to obj.
         """
-        q = self.field.predicate
-        q = q() if callable(q) else q
-
-        # If this is a simple restriction that can be expressed as an AND of
-        # two basic field lookups, we can return a dictionary of filters...
-        if q.connector == Q.AND and all(type(c) == tuple for c in q.children):
-            return {
-                lookup: getattr(obj, v.name) if isinstance(v, L) else v
-                for lookup, v in q.children
-            }
-
-        # ...otherwise, we return this lookup and let the compiler figure it
-        # out. This will involve a join where the above method might not.
-        else:
-            return {self.name: obj}
+        return {self.name: obj}
 
     def resolve_related_fields(self):
         return []

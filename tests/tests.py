@@ -16,6 +16,7 @@ from .models import (
     TBNSPage,
     SavedFilter,
     User,
+    LinkedNode,
 )
 
 
@@ -340,3 +341,16 @@ class RelationshipTests(TestCase):
             User.objects.exclude(savedfilter__pk__in=[1, 2]),
             User.objects.exclude(pk__in=[1, 2]),
         )
+
+    def test_single_reverse(self):
+        node_1 = LinkedNode.objects.create(
+            name="first node", prev_id=None,
+        )
+        node_2 = LinkedNode.objects.create(
+            name="next node", prev_id=node_1.id,
+        )
+        node_3 = LinkedNode.objects.create(
+            name="last node", prev_id=node_2.id,
+        )
+        self.assertEqual(node_3.prev, node_2)
+        self.assertEqual(node_1.next, node_2)
