@@ -1,5 +1,6 @@
 try:
     from psycopg2cffi import compat
+
     compat.register()
 except ImportError:
     pass
@@ -7,7 +8,7 @@ except ImportError:
 import environ
 
 env = environ.Env()
-DATABASES = {'default': env.db(default="sqlite:///")}
+DATABASES = {"default": env.db(default="sqlite:///")}
 
 INSTALLED_APPS = ["tests"]
 

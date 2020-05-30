@@ -20,7 +20,6 @@ from .models import (
 
 
 class RelationshipTests(TestCase):
-
     def assertSeqEqual(self, seq1, seq2):
         self.assertSequenceEqual(list(seq1), list(seq2))
 
@@ -49,15 +48,25 @@ class RelationshipTests(TestCase):
         for i, slug in enumerate(sorted(slug_tuples, key=len)):
 
             kwargs = {"name": slug[-1], "slug": ".".join(slug)}
-            mptt_cache[slug] = MPTTPage.objects.create(parent=mptt_cache.get(slug[:-1]), **kwargs)
+            mptt_cache[slug] = MPTTPage.objects.create(
+                parent=mptt_cache.get(slug[:-1]), **kwargs
+            )
 
             tbmp_parent = tbmp_cache.get(slug[:-1])
-            tbmp_cache[slug] = tbmp_parent.add_child(**kwargs) if tbmp_parent else TBMPPage.add_root(**kwargs)
+            tbmp_cache[slug] = (
+                tbmp_parent.add_child(**kwargs)
+                if tbmp_parent
+                else TBMPPage.add_root(**kwargs)
+            )
 
             tbns_parent = tbns_cache.get(slug[:-1])
             if tbns_parent:
                 tbns_parent.refresh_from_db()
-            tbns_cache[slug] = tbns_parent.add_child(**kwargs) if tbns_parent else TBNSPage.add_root(**kwargs)
+            tbns_cache[slug] = (
+                tbns_parent.add_child(**kwargs)
+                if tbns_parent
+                else TBNSPage.add_root(**kwargs)
+            )
 
             Page.objects.create(**kwargs)
 
@@ -155,7 +164,6 @@ class RelationshipTests(TestCase):
         )
 
     def test_m2m_recursive_accessor_forward(self):
-
         def test_for(page_model):
             p = page_model.objects.get(slug="Top.Science.Astronomy")
             self.assertSeqEqual(
@@ -172,7 +180,6 @@ class RelationshipTests(TestCase):
         test_for(TBNSPage)
 
     def test_m2m_recursive_accessor_reverse(self):
-
         def test_for(page_model):
             p = page_model.objects.get(slug="Top.Science.Astronomy")
             self.assertSeqEqual(
@@ -186,7 +193,6 @@ class RelationshipTests(TestCase):
         test_for(TBNSPage)
 
     def test_m2m_recursive_filter_forward(self):
-
         def test_for(page_model):
             self.assertSeqEqual(
                 page_model.objects.filter(subtree__slug__contains="Stars")
@@ -208,7 +214,6 @@ class RelationshipTests(TestCase):
         test_for(TBNSPage)
 
     def test_m2m_recursive_filter_reverse(self):
-
         def test_for(page_model):
             self.assertSeqEqual(
                 page_model.objects.filter(ascendants__slug__contains="Astronomy")
@@ -230,7 +235,6 @@ class RelationshipTests(TestCase):
         test_for(TBNSPage)
 
     def test_m2m_recursive_prefetch_related_forward(self):
-
         def test_for(page_model):
             qs = page_model.objects.filter(slug__startswith="Top.Science")
             with self.assertNumQueries(2 + qs.count()):
@@ -247,7 +251,6 @@ class RelationshipTests(TestCase):
         test_for(TBNSPage)
 
     def test_m2m_recursive_prefetch_related_reverse(self):
-
         def test_for(page_model):
             qs = page_model.objects.filter(slug__startswith="Top.Science")
             with self.assertNumQueries(2 + qs.count()):
@@ -317,15 +320,16 @@ class RelationshipTests(TestCase):
 
     def test_m2m(self):
         users = User.objects.bulk_create(
-            User(pk=uid, username='User %d' % uid)
-            for uid in range(1, 4)
+            User(pk=uid, username="User %d" % uid) for uid in range(1, 4)
         )
 
-        sf = SavedFilter.objects.bulk_create([
-            SavedFilter(pk=1, user=users[0], search_regex='a'),
-            SavedFilter(pk=2, user=users[1], search_regex='a'),
-            SavedFilter(pk=3, user=users[0], search_regex='a'),
-        ])
+        sf = SavedFilter.objects.bulk_create(
+            [
+                SavedFilter(pk=1, user=users[0], search_regex="a"),
+                SavedFilter(pk=2, user=users[1], search_regex="a"),
+                SavedFilter(pk=3, user=users[0], search_regex="a"),
+            ]
+        )
 
         self.assertSeqEqual(
             User.objects.filter(savedfilter__pk__in=[1, 2]),

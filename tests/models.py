@@ -89,9 +89,7 @@ class Categorised(models.Model):
 class CategoryBase(models.Model):
     code = models.CharField(unique=True, max_length=255)
     members = Relationship(
-        Categorised,
-        Q(category_codes__contains=L("code")),
-        related_name="categories",
+        Categorised, Q(category_codes__contains=L("code")), related_name="categories",
     )
 
     class Meta:

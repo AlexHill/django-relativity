@@ -4,9 +4,14 @@ from relativity.fields import L, Relationship
 
 
 class MPTTRef(L):
-
     def resolve_expression(
-        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False, simple_col=False
+        self,
+        query=None,
+        allow_joins=True,
+        reuse=None,
+        summarize=False,
+        for_save=False,
+        simple_col=False,
     ):
         model = query._relationship_field_query.model
         name = getattr(model._mptt_meta, self.name + "_attr")
@@ -16,7 +21,6 @@ class MPTTRef(L):
 
 
 class MPTTQ(Q):
-
     def __init__(self, *args, **kwargs):
         super(MPTTQ, self).__init__(*args, **kwargs)
         self.filters = kwargs
@@ -35,7 +39,6 @@ class MPTTQ(Q):
 
 
 class MPTTDescendants(Relationship):
-
     def __init__(self, **kwargs):
         kwargs.setdefault("related_name", "ascendants")
         kwargs.setdefault("to", "self")

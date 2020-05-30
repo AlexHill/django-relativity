@@ -15,7 +15,6 @@ from django.utils.functional import cached_property
 
 
 class Restriction(object):
-
     def __init__(
         self,
         forward,
@@ -76,7 +75,6 @@ def create_relationship_many_manager(base_manager, rel):
 
     # noinspection PyProtectedMember
     class RelationshipManager(base_manager):
-
         def __init__(self, instance):
             super(RelationshipManager, self).__init__()
 
@@ -90,6 +88,7 @@ def create_relationship_many_manager(base_manager, rel):
             manager = getattr(self.model, kwargs.pop("manager"))
             manager_class = create_relationship_many_manager(manager.__class__, rel)
             return manager_class(self.instance)
+
         do_not_call_in_templates = True
 
         def _apply_rel_filters(self, queryset):
@@ -364,7 +363,7 @@ class Relationship(models.ForeignObject):
         return []
 
     def contribute_to_class(self, cls, name, **kwargs):
-        kwargs['private_only'] = True
+        kwargs["private_only"] = True
         super(ForeignObject, self).contribute_to_class(cls, name, **kwargs)
         setattr(cls, self.name, self.accessor_class(self))
 
@@ -387,7 +386,13 @@ class Relationship(models.ForeignObject):
 
 class L(F):
     def resolve_expression(
-        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False, simple_col=False,
+        self,
+        query=None,
+        allow_joins=True,
+        reuse=None,
+        summarize=False,
+        for_save=False,
+        simple_col=False,
     ):
         # noinspection PyProtectedMember
         return super(L, self).resolve_expression(
