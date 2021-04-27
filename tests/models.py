@@ -139,7 +139,11 @@ class CartItem(models.Model):
     description = models.TextField()
 
     product = Relationship(
-        Product, Q(sku=L("product_code")), related_name="cart_items", multiple=False
+        Product,
+        Q(sku=L("product_code")),
+        related_name="cart_items",
+        multiple=False,
+        null=False,
     )
 
     def __str__(self):
