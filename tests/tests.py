@@ -17,6 +17,7 @@ from .models import (
     SavedFilter,
     User,
     LinkedNode,
+    UserGenerator,
 )
 
 
@@ -354,3 +355,7 @@ class RelationshipTests(TestCase):
         )
         self.assertEqual(node_3.prev, node_2)
         self.assertEqual(node_1.next, node_2)
+
+    def test_complex_expression(self):
+        ug = UserGenerator.objects.create()
+        self.assertEqual(ug.user, User.objects.get(username="generated_for_%d" % ug.id))

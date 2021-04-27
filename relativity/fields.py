@@ -1,10 +1,11 @@
 from __future__ import unicode_literals, absolute_import
 
+import copy
 from collections import OrderedDict
 
 import django
 from django.db import models, connections
-from django.db.models import F, ForeignObject
+from django.db.models import F, ForeignObject, Value
 from django.db.models.fields.related_descriptors import (
     ReverseManyToOneDescriptor,
     ReverseOneToOneDescriptor,
@@ -237,19 +238,28 @@ class CustomForeignObjectRel(ForeignObjectRel):
             where_class=where_class,
         )
 
+    @classmethod
+    def _resolve_expression_local_references(cls, expr, obj):
+        if isinstance(expr, L):
+            return expr._relativity_resolve_for_instance(obj)
+        else:
+            for source_expr in expr.get_source_expressions():
+                cls._resolve_expression_local_references(source_expr, obj)
+        return expr
+
     def get_forward_related_filter(self, obj):
         """
         Return the filter arguments which select the instances of self.model
         that are related to obj.
         """
         q = self.field.predicate
-        q = q() if callable(q) else q
+        q = q() if callable(q) else copy.deepcopy(q)
 
         # If this is a simple restriction that can be expressed as an AND of
         # two basic field lookups, we can return a dictionary of filters...
         if q.connector == Q.AND and all(type(c) == tuple for c in q.children):
             return {
-                lookup: getattr(obj, v.name) if isinstance(v, L) else v
+                lookup: self._resolve_expression_local_references(v, obj)
                 for lookup, v in q.children
             }
 
@@ -371,6 +381,11 @@ class Relationship(models.ForeignObject):
 
 
 class L(F):
+    def _relativity_resolve_for_instance(self, obj):
+        val = getattr(obj, self.name)
+        self._relativity_resolved_value = Value(val)
+        return val
+
     def resolve_expression(
         self,
         query=None,
@@ -380,7 +395,10 @@ class L(F):
         for_save=False,
         simple_col=False,
     ):
-        # noinspection PyProtectedMember
-        return super(L, self).resolve_expression(
-            query._relationship_field_query, allow_joins, reuse, summarize, for_save
-        )
+        if hasattr(self, "_relativity_resolved_value"):
+            return self._relativity_resolved_value
+        else:
+            # noinspection PyProtectedMember
+            return super(L, self).resolve_expression(
+                query._relationship_field_query, allow_joins, reuse, summarize, for_save
+            )
