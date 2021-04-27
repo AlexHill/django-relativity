@@ -281,7 +281,14 @@ class MultipleRelationshipDescriptor(ReverseManyToOneDescriptor):
 
 
 class SingleRelationshipDescriptor(ReverseOneToOneDescriptor):
-    pass
+    def __get__(self, instance, cls=None):
+        try:
+            return super(SingleRelationshipDescriptor, self).__get__(instance, cls=None)
+        except self.RelatedObjectDoesNotExist:
+            if self.related.null:
+                return None
+            else:
+                raise
 
 
 # noinspection PyProtectedMember

@@ -356,6 +356,18 @@ class RelationshipTests(TestCase):
         self.assertEqual(node_3.prev, node_2)
         self.assertEqual(node_1.next, node_2)
 
+        self.assertIsNone(node_3.next)
+        self.assertIsNone(node_1.prev)
+
+    def test_not_nullable(self):
+        item = CartItem.objects.create(
+            pk=4,
+            product_code="nonexistent",
+            description="cart item for anonexistent product",
+        )
+        with self.assertRaises(Product.DoesNotExist):
+            item.product
+
     def test_complex_expression(self):
         ug = UserGenerator.objects.create()
         self.assertEqual(ug.user, User.objects.get(username="generated_for_%d" % ug.id))
