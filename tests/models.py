@@ -1,8 +1,9 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.db import models
-from django.db.models import Lookup, Q
+from django.db.models import Lookup, Q, Value
 from django.db.models.fields import Field
+from django.db.models.functions import Concat
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 from six import python_2_unicode_compatible
@@ -186,3 +187,17 @@ class SavedFilter(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     search_regex = models.TextField()
     chemicals = Relationship(Chemical, Q(formula__regex=L("search_regex")))
+
+
+class UserGenerator(models.Model):
+
+    user = Relationship(
+        User,
+        Q(username=Concat(Value("generated_for_"), L("id"))),
+        multiple=False,
+        reverse_multiple=False,
+    )
+
+    def save(self, *args, **kwargs):
+        super(UserGenerator, self).save(*args, **kwargs)
+        User.objects.create(username="generated_for_%d" % self.id)

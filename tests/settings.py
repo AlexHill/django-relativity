@@ -17,3 +17,5 @@ SECRET_KEY = "test_secret_key"
 TEST_NON_SERIALIZED_APPS = ["tests"]
 
 DEBUG = True
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
