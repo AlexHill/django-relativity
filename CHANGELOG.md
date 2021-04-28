@@ -1,5 +1,8 @@
 # django-relativity changelog
 
+## 0.2.4 - 2021-04-29
+- Until Django's behaviour can be emulated, don't cache related objects
+
 ## 0.2.3 - 2021-04-28
 - Improved behaviour of Relationship fields with null=True
 - Allowed using L() inside complex expressions in predicate
