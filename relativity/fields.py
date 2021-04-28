@@ -289,6 +289,14 @@ class SingleRelationshipDescriptor(ReverseOneToOneDescriptor):
                 return None
             else:
                 raise
+        finally:
+            # TODO: figure out how to persuade Django to treat us a normal related_object
+            if django.VERSION < (2,):
+                if hasattr(instance, self.cache_name):
+                    delattr(instance, self.cache_name)
+            else:
+                if self.related.is_cached(instance):
+                    self.related.delete_cached_value(instance)
 
 
 # noinspection PyProtectedMember
