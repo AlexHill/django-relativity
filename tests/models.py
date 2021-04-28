@@ -20,7 +20,7 @@ class LinkedNode(models.Model):
 
     next = Relationship(
         "self",
-        predicate=Q(prev_id=L('id')),
+        predicate=Q(prev_id=L("id")),
         reverse_multiple=False,
         multiple=False,
         related_name="prev",
@@ -99,7 +99,9 @@ class Categorised(models.Model):
 class CategoryBase(models.Model):
     code = models.CharField(unique=True, max_length=255)
     members = Relationship(
-        Categorised, Q(category_codes__contains=L("code")), related_name="categories",
+        Categorised,
+        Q(category_codes__contains=L("code")),
+        related_name="categories",
     )
 
     class Meta:
