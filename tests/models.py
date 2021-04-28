@@ -6,7 +6,6 @@ from django.db.models.fields import Field
 from django.db.models.functions import Concat
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
-from six import python_2_unicode_compatible
 from treebeard.mp_tree import MP_Node
 from treebeard.ns_tree import NS_Node
 
@@ -39,7 +38,6 @@ class NotEqual(Lookup):
         return "%s <> %s" % (lhs, rhs), params
 
 
-@python_2_unicode_compatible
 class BasePage(models.Model):
     name = models.TextField()
     slug = models.CharField(unique=True, null=False, blank=False, max_length=255)
@@ -72,7 +70,6 @@ class TBNSPage(NS_Node, BasePage):
     subtree = NS_Subtree()
 
 
-@python_2_unicode_compatible
 class PageBase(BasePage):
     descendants = Relationship(
         "self",
@@ -99,7 +96,6 @@ class Categorised(models.Model):
     category_codes = models.TextField()
 
 
-@python_2_unicode_compatible
 class CategoryBase(models.Model):
     code = models.CharField(unique=True, max_length=255)
     members = Relationship(
@@ -117,7 +113,6 @@ class Category(CategoryBase):
     pass
 
 
-@python_2_unicode_compatible
 class Product(models.Model):
     sku = models.CharField(max_length=13)
     colour = models.CharField(max_length=20)
@@ -133,7 +128,6 @@ class Product(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class CartItem(models.Model):
     product_code = models.CharField(max_length=13)
     description = models.TextField()
@@ -150,7 +144,6 @@ class CartItem(models.Model):
         return "Cart item #%s: SKU %s" % (self.pk, self.sku)
 
 
-@python_2_unicode_compatible
 class ProductFilter(models.Model):
     fcolour = models.CharField(max_length=20)
     fsize = models.IntegerField()
@@ -169,7 +162,6 @@ class ProductFilter(models.Model):
         return "ProductFilter #%d: %s size %s" % (self.pk, self.fcolour, self.fsize)
 
 
-@python_2_unicode_compatible
 class User(models.Model):
     username = models.CharField(primary_key=True, max_length=255)
 
@@ -177,7 +169,6 @@ class User(models.Model):
         return self.username
 
 
-@python_2_unicode_compatible
 class Chemical(models.Model):
     formula = models.TextField()
     chemical_name = models.TextField()

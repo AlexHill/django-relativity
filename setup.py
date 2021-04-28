@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='https://github.com/alexhill/django-relativity',
     packages=setuptools.find_packages(),
-    install_requires=['django>=1.11', 'six'],
+    install_requires=['django>=1.11'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
