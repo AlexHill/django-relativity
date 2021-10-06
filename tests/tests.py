@@ -90,7 +90,9 @@ class RelationshipTests(TestCase):
                 Product(pk=6, sku="66", size=5, colour="blue", shape="square"),
                 Product(pk=7, sku="77", size=1, colour="yellow", shape="circle"),
                 Product(pk=8, sku="88", size=2, colour="green", shape="triangle"),
-                Product(pk=9, sku="99", size=2, colour="red", shape="square"),
+                Product(
+                    pk=9, sku="99", size=2, colour="red", shape="square", deleted=True
+                ),
             ]
         )
 
@@ -366,7 +368,7 @@ class RelationshipTests(TestCase):
         item = CartItem.objects.create(
             pk=4,
             product_code="nonexistent",
-            description="cart item for anonexistent product",
+            description="cart item for a non-existent product",
         )
         with self.assertRaises(Product.DoesNotExist):
             item.product
@@ -380,5 +382,15 @@ class RelationshipTests(TestCase):
         self.assertIsNotNone(item.product)
 
         item.product.delete()
+        with self.assertRaises(Product.DoesNotExist):
+            item.product
+
+    def test_primitive_in_predicate(self):
+        product = Product.objects.filter(deleted=True).first()
+        item = CartItem.objects.create(
+            pk=5,
+            product_code=product.sku,
+            description="cart item for a deleted product",
+        )
         with self.assertRaises(Product.DoesNotExist):
             item.product
