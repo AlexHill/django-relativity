@@ -143,7 +143,7 @@ class CartItem(models.Model):
     )
 
     def __str__(self):
-        return "Cart item #%s: SKU %s" % (self.pk, self.sku)
+        return "Cart item #%s: product code %s" % (self.pk, self.product_code)
 
 
 class ProductFilter(models.Model):
