@@ -120,6 +120,7 @@ class Product(models.Model):
     colour = models.CharField(max_length=20)
     shape = models.CharField(max_length=20)
     size = models.IntegerField()
+    deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return "Product #%s: a %s %s, size %s" % (
@@ -136,7 +137,7 @@ class CartItem(models.Model):
 
     product = Relationship(
         Product,
-        Q(sku=L("product_code")),
+        Q(deleted=False, sku=L("product_code")),
         related_name="cart_items",
         multiple=False,
         null=False,

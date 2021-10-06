@@ -242,9 +242,11 @@ class CustomForeignObjectRel(ForeignObjectRel):
     def _resolve_expression_local_references(cls, expr, obj):
         if isinstance(expr, L):
             return expr._relativity_resolve_for_instance(obj)
-        else:
+        elif hasattr(expr, "get_source_expressions"):
             for source_expr in expr.get_source_expressions():
                 cls._resolve_expression_local_references(source_expr, obj)
+        else:
+            return expr
         return expr
 
     def get_forward_related_filter(self, obj):
