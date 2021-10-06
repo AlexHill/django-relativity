@@ -1,5 +1,8 @@
 # django-relativity changelog
 
+## 0.2.5 - 2021-10-06
+- Fixed a crash when accessing a single related descriptor on a Relationship whose predicate contains a bare primitive value, i.e. not wrapped in `Value()`.
+
 ## 0.2.4 - 2021-04-29
 - Until Django's behaviour can be emulated, don't cache related objects
 
