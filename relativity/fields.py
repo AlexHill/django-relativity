@@ -225,7 +225,7 @@ class CustomForeignObjectRel(ForeignObjectRel):
     def relationship_related_query_name(self):
         return self.remote_field.name
 
-    def get_extra_restriction(self, alias, related_alias):
+    def _get_extra_restriction(self, alias, related_alias):
         return Restriction(
             forward=False,
             local_model=self.related_model,
@@ -234,6 +234,18 @@ class CustomForeignObjectRel(ForeignObjectRel):
             related_alias=alias,
             predicate=self.field.predicate,
         )
+
+    def _get_extra_restriction_legacy(self, where_class, alias, related_alias):
+        # this is a shim to maintain compatibility with django < 4.0
+        return self._get_extra_restriction(alias, related_alias)
+
+    # this is required to handle a change in Django 4.0
+    # https://docs.djangoproject.com/en/4.0/releases/4.0/#miscellaneous
+    # the signature of the (private) funtion was changed
+    if django.VERSION < (4, 0):
+        get_extra_restriction = _get_extra_restriction_legacy
+    else:
+        get_extra_restriction = _get_extra_restriction
 
     @classmethod
     def _resolve_expression_local_references(cls, expr, obj):
@@ -351,7 +363,7 @@ class Relationship(models.ForeignObject):
     def get_accessor_name(self):
         return self.name
 
-    def get_extra_restriction(self, related_alias, local_alias):
+    def _get_extra_restriction(self, related_alias, local_alias):
         return Restriction(
             forward=True,
             local_model=self.model,
@@ -360,6 +372,19 @@ class Relationship(models.ForeignObject):
             related_alias=related_alias,
             predicate=self.predicate,
         )
+
+    def _get_extra_restriction_legacy(self, where_class, alias, related_alias):
+        # this is a shim to maintain compatibility with django < 4.0
+        return self._get_extra_restriction(alias, related_alias)
+
+    # this is required to handle a change in Django 4.0
+    # https://docs.djangoproject.com/en/4.0/releases/4.0/#miscellaneous
+    # the signature of the (private) funtion was changed
+    if django.VERSION < (4, 0):
+        get_extra_restriction = _get_extra_restriction_legacy
+    else:
+        get_extra_restriction = _get_extra_restriction
+
 
     def get_forward_related_filter(self, obj):
         """
