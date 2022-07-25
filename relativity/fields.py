@@ -24,7 +24,6 @@ class Restriction(object):
         local_alias,
         related_alias,
         predicate,
-        where_class,
     ):
         self.forward = forward
         self.local_model = local_model
@@ -32,7 +31,6 @@ class Restriction(object):
         self.related_alias = related_alias
         self.local_alias = local_alias
         self.predicate = predicate
-        self.where_class = where_class
 
     def as_sql(self, compiler, connection):
         local, related = self.local_alias, self.related_alias
@@ -227,7 +225,7 @@ class CustomForeignObjectRel(ForeignObjectRel):
     def relationship_related_query_name(self):
         return self.remote_field.name
 
-    def get_extra_restriction(self, where_class, alias, related_alias):
+    def get_extra_restriction(self, alias, related_alias):
         return Restriction(
             forward=False,
             local_model=self.related_model,
@@ -235,7 +233,6 @@ class CustomForeignObjectRel(ForeignObjectRel):
             local_alias=related_alias,
             related_alias=alias,
             predicate=self.field.predicate,
-            where_class=where_class,
         )
 
     @classmethod
@@ -354,7 +351,7 @@ class Relationship(models.ForeignObject):
     def get_accessor_name(self):
         return self.name
 
-    def get_extra_restriction(self, where_class, related_alias, local_alias):
+    def get_extra_restriction(self, related_alias, local_alias):
         return Restriction(
             forward=True,
             local_model=self.model,
@@ -362,7 +359,6 @@ class Relationship(models.ForeignObject):
             local_alias=local_alias,
             related_alias=related_alias,
             predicate=self.predicate,
-            where_class=where_class,
         )
 
     def get_forward_related_filter(self, obj):
