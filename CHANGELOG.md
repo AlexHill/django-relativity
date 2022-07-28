@@ -1,5 +1,8 @@
 # django-relativity changelog
 
+## 0.2.6 - 2022-07-28
+- Added support for Django 4 (thanks to AlexCLeduc)
+
 ## 0.2.5 - 2021-10-06
 - Fixed a crash when accessing a single related descriptor on a Relationship whose predicate contains a bare primitive value, i.e. not wrapped in `Value()`.
 
