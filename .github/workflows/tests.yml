@@ -18,4 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
+        with:
+          python_version: ${{ matrix.python_version }}
       - run: make test
+        env:
+          DJANGO_VERSION: ${{ matrix.django_version }}
