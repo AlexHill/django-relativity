@@ -8,3 +8,7 @@ build: venv
 
 deploy:
 	venv/bin/twine upload dist/*
+
+test: venv
+	venv/bin/pip install -r test-requirements.txt
+	DJANGO_SETTINGS_MODULE=tests.settings venv/bin/django-admin test
