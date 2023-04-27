@@ -2,3 +2,4 @@ django-environ
 django-mptt
 django-treebeard
 psycopg2-binary
+mysqlclient
