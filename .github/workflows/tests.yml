@@ -35,7 +35,7 @@ jobs:
           DATABASE_URL: ${{ matrix.database_url }}
     services:
       mysql:
-        image: ${{ startsWith(matrix.database_url, "mysql") && "mysql:5.7" || "" }}
+        image: ${{ startsWith(matrix.database_url, 'mysql') && 'mysql:5.7' || '' }}
         env:
           MYSQL_ROOT_PASSWORD: mysql
         options: >-
@@ -46,7 +46,7 @@ jobs:
         ports:
           - 3306:3306
       postgres:
-        image: ${{ startsWith(matrix.database_url, "postgres") && "postgres" || "" }}
+        image: ${{ startsWith(matrix.database_url, 'postgres') && 'postgres' || '' }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
