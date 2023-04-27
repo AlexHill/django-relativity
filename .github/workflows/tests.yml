@@ -10,13 +10,16 @@ jobs:
         database_url:
           - postgres://postgres:postgres@localhost/django_relativity
           - sqlite://
+          - mysql://root:mysql@localhost/django_relativity
         django_version: ["3.2", "4.0", "4.1", "4.2"]
         python_version: ["3.8", "3.9", "3.10", "3.11"]
         include:
           - {django_version: "3.2", python_version: "3.6", database_url: "postgres://postgres:postgres@localhost/django_relativity"}
           - {django_version: "3.2", python_version: "3.6", database_url: "sqlite://"}
+          - {django_version: "3.2", python_version: "3.6", database_url: "mysql://root:mysql@localhost/django_relativity"}
           - {django_version: "3.2", python_version: "3.7", database_url: "postgres://postgres:postgres@localhost/django_relativity"}
           - {django_version: "3.2", python_version: "3.7", database_url: "sqlite://"}
+          - {django_version: "3.2", python_version: "3.7", database_url: "mysql://root:mysql@localhost/django_relativity"}
         exclude:
           - {django_version: "3.2", python_version: "3.11"}
           - {django_version: "4.0", python_version: "3.11"}
@@ -31,8 +34,19 @@ jobs:
           DJANGO_VERSION: ${{ matrix.django_version }}
           DATABASE_URL: ${{ matrix.database_url }}
     services:
+      mysql:
+        image: ${{ startsWith(matrix.database_url, "mysql") && "mysql:5.7" || "" }}
+        env:
+          MYSQL_ROOT_PASSWORD: mysql
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 3306:3306
       postgres:
-        image: postgres
+        image: ${{ startsWith(matrix.database_url, "postgres") && "postgres" || "" }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -41,6 +55,6 @@ jobs:
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 3
         ports:
           - 5432:5432
