@@ -16,10 +16,10 @@ jobs:
         include:
           - {django_version: "3.2", python_version: "3.6", database_url: "postgres://postgres:postgres@localhost/django_relativity"}
           - {django_version: "3.2", python_version: "3.6", database_url: "sqlite://"}
-          - {django_version: "3.2", python_version: "3.6", database_url: "mysql://root:mysql@localhost/django_relativity"}
+          - {django_version: "3.2", python_version: "3.6", database_url: "mysql://root:mysql@127.0.0.1/django_relativity"}
           - {django_version: "3.2", python_version: "3.7", database_url: "postgres://postgres:postgres@localhost/django_relativity"}
           - {django_version: "3.2", python_version: "3.7", database_url: "sqlite://"}
-          - {django_version: "3.2", python_version: "3.7", database_url: "mysql://root:mysql@localhost/django_relativity"}
+          - {django_version: "3.2", python_version: "3.7", database_url: "mysql://root:mysql@127.0.0.1/django_relativity"}
         exclude:
           - {django_version: "3.2", python_version: "3.11"}
           - {django_version: "4.0", python_version: "3.11"}
@@ -35,7 +35,7 @@ jobs:
           DATABASE_URL: ${{ matrix.database_url }}
     services:
       mysql:
-        image: ${{ startsWith(matrix.database_url, 'mysql') && 'mysql:5.7' || '' }}
+        image: ${{ startsWith(matrix.database_url, 'mysql') && 'mysql' || '' }}
         env:
           MYSQL_ROOT_PASSWORD: mysql
         options: >-
