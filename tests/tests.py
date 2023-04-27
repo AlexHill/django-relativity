@@ -153,18 +153,18 @@ class RelationshipTests(TestCase):
         member_qs = Categorised.objects.filter(pk__lte=4)
         with self.assertNumQueries(2):
             members = member_qs.prefetch_related("categories")
-            member_dict = {m: list(m.categories.all()) for m in members}
+            member_dict = {m: set(m.categories.all()) for m in members}
         self.assertDictEqual(
-            member_dict, {m: list(m.categories.all()) for m in member_qs}
+            member_dict, {m: set(m.categories.all()) for m in member_qs}
         )
 
     def test_m2m_prefetch_related_reverse(self):
         category_qs = Category.objects.filter(code__in=["AAA", "BBB"])
         with self.assertNumQueries(2):
             categories = category_qs.prefetch_related("members")
-            category_dict = {c: list(c.members.all()) for c in categories}
+            category_dict = {c: set(c.members.all()) for c in categories}
         self.assertDictEqual(
-            category_dict, {c: list(c.members.all()) for c in category_qs}
+            category_dict, {c: set(c.members.all()) for c in category_qs}
         )
 
     def test_m2m_recursive_accessor_forward(self):
