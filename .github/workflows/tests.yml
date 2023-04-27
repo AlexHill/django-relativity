@@ -13,8 +13,10 @@ jobs:
         django_version: ["3.2", "4.0", "4.1", "4.2"]
         python_version: ["3.8", "3.9", "3.10", "3.11"]
         include:
-          - {django_version: "3.2", python_version: "3.6"}
-          - {django_version: "3.2", python_version: "3.7"}
+          - {django_version: "3.2", python_version: "3.6", database_url: "postgres://postgres:postgres@/django_relativity"}
+          - {django_version: "3.2", python_version: "3.6", database_url: "sqlite://"}
+          - {django_version: "3.2", python_version: "3.7", database_url: "postgres://postgres:postgres@/django_relativity"}
+          - {django_version: "3.2", python_version: "3.7", database_url: "sqlite://"}
         exclude:
           - {django_version: "3.2", python_version: "3.11"}
           - {django_version: "4.0", python_version: "3.11"}
