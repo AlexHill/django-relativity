@@ -5,7 +5,11 @@ on: [pull_request, push]
 jobs:
   tests:
     strategy:
+      fail-fast: false
       matrix:
+        database_url:
+          - postgres://postgres:postgres@/django_relativity
+          - sqlite://
         django_version: ["3.2", "4.0", "4.1", "4.2"]
         python_version: ["3.8", "3.9", "3.10", "3.11"]
         include:
@@ -23,3 +27,16 @@ jobs:
       - run: make test
         env:
           DJANGO_VERSION: ${{ matrix.django_version }}
+          DATABASE_URL: ${{ matrix.database_url }}
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
