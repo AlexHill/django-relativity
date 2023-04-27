@@ -14,7 +14,7 @@ jobs:
         exclude:
           - {django_version: "3.2", python_version: "3.11"}
           - {django_version: "4.0", python_version: "3.11"}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
