@@ -4,9 +4,18 @@ on: [pull_request, push]
 
 jobs:
   tests:
+    strategy:
+      matrix:
+        django_version: [3.2, 4.0, 4.1, 4.2]
+        python_version: [3.8, 3.9, 3.10, 3.11]
+        include:
+          - {django_version: 3.2, python_version: 3.6}
+          - {django_version: 3.2, python_version: 3.7}
+        exclude:
+          - {django_version: 3.2, python_version: 3.11}
+          - {django_version: 4.0, python_version: 3.11}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
-      - run: ls -l
       - run: make test
