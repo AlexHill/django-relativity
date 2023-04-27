@@ -10,7 +10,7 @@ jobs:
         database_url:
           - postgres://postgres:postgres@localhost/django_relativity
           - sqlite://
-          - mysql://root:mysql@localhost/django_relativity
+          - mysql://root:mysql@127.0.0.1/django_relativity
         django_version: ["3.2", "4.0", "4.1", "4.2"]
         python_version: ["3.8", "3.9", "3.10", "3.11"]
         include:
