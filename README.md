@@ -1,9 +1,9 @@
 # django-relativity
 
 [![PyPI](https://img.shields.io/pypi/v/django-relativity.svg)](https://pypi.org/project/django-relativity/)
-[![Build Status](https://app.travis-ci.com/AlexHill/django-relativity.svg?branch=master)](https://app.travis-ci.com/github/AlexHill/django-relativity)
+![build status](https://github.com/alexhill/django-relativity/actions/workflows/tests.yml/badge.svg)
 
-django-relativity provides a `Relationship` field that lets you declare the non-foreign-key relationships between your models and use them throughout the ORM.
+django-relativity provides a `Relationship` field that lets you declare non-foreign-key relationships between your models and use them throughout the ORM.
 
 _Non-foreign-key relationships?_
 
