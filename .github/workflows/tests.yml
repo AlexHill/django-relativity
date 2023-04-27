@@ -8,27 +8,25 @@ jobs:
       fail-fast: false
       matrix:
         database_url:
-          - postgres://postgres:postgres@localhost/django_relativity
+          - postgres://postgres:postgres@postgres/django_relativity
           - sqlite://
-          - mysql://root:mysql@127.0.0.1/django_relativity
+          - mysql://root:mysql@mysql/django_relativity
         django_version: ["3.2", "4.0", "4.1", "4.2"]
         python_version: ["3.8", "3.9", "3.10", "3.11"]
         include:
-          - {django_version: "3.2", python_version: "3.6", database_url: "postgres://postgres:postgres@localhost/django_relativity"}
+          - {django_version: "3.2", python_version: "3.6", database_url: "postgres://postgres:postgres@postgres/django_relativity"}
           - {django_version: "3.2", python_version: "3.6", database_url: "sqlite://"}
-          - {django_version: "3.2", python_version: "3.6", database_url: "mysql://root:mysql@127.0.0.1/django_relativity"}
-          - {django_version: "3.2", python_version: "3.7", database_url: "postgres://postgres:postgres@localhost/django_relativity"}
+          - {django_version: "3.2", python_version: "3.6", database_url: "mysql://root:mysql@mysql/django_relativity"}
+          - {django_version: "3.2", python_version: "3.7", database_url: "postgres://postgres:postgres@postgres/django_relativity"}
           - {django_version: "3.2", python_version: "3.7", database_url: "sqlite://"}
-          - {django_version: "3.2", python_version: "3.7", database_url: "mysql://root:mysql@127.0.0.1/django_relativity"}
+          - {django_version: "3.2", python_version: "3.7", database_url: "mysql://root:mysql@mysql/django_relativity"}
         exclude:
           - {django_version: "3.2", python_version: "3.11"}
           - {django_version: "4.0", python_version: "3.11"}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    container: python:${{ matrix.python_version }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python_version }}
       - run: make test
         env:
           DJANGO_VERSION: ${{ matrix.django_version }}
@@ -43,8 +41,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 3
-        ports:
-          - 3306:3306
       postgres:
         image: ${{ startsWith(matrix.database_url, 'postgres') && 'postgres' || '' }}
         env:
@@ -56,5 +52,3 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 3
-        ports:
-          - 5432:5432
